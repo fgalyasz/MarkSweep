@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1 — 2026-09-15
+
+- `swift run MarkSweep` brings a window to the front. An unbundled process no longer sits in the terminal with no UI.
+
 ## 0.1.0 — 2026-09-15
 
 - Windowed app with an account picker. Gmail connects; iCloud Photos and Google Photos show as coming soon.

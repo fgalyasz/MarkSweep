@@ -12,6 +12,7 @@ struct RootView: View {
                 ReviewView()
             }
         }
+        .onAppear(perform: becomeRegularApp)
         .alert(
             "Coming soon",
             isPresented: Binding(
