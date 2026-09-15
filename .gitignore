@@ -1,0 +1,9 @@
+/.build
+/.swiftpm
+/dist
+.DS_Store
+*.dmg
+*.zip
+.env
+.env.local
+google_oauth_config.json

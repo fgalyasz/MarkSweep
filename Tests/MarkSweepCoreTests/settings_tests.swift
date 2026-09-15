@@ -1,0 +1,38 @@
+import XCTest
+@testable import MarkSweepCore
+
+final class SettingsTests: XCTestCase {
+    func testMissingFileReturnsDefault() {
+        let url = URL(fileURLWithPath: "/tmp/marksweep-missing-\(UUID().uuidString).json")
+        XCTAssertEqual(loadSettings(from: url), .default)
+    }
+
+    func testRoundTrip() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("marksweep-settings.json")
+        let settings = MarkSweepSettings(lastEmail: "a@b.com", largeBytesThreshold: 9, perQueryCap: 12)
+        try saveSettings(settings, to: url)
+        XCTAssertEqual(loadSettings(from: url), settings)
+        try FileManager.default.removeItem(at: url)
+    }
+
+    func testCorruptFileReturnsDefault() throws {
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("marksweep-bad.json")
+        try Data("not-json".utf8).write(to: url)
+        XCTAssertEqual(loadSettings(from: url), .default)
+        try FileManager.default.removeItem(at: url)
+    }
+
+    func testSettingsWithEmailClears() {
+        let next = settingsWithEmail(.default, email: nil)
+        XCTAssertNil(next.lastEmail)
+        XCTAssertEqual(next.largeBytesThreshold, MarkSweepSettings.default.largeBytesThreshold)
+    }
+
+    func testDefaultURL() {
+        XCTAssertTrue(defaultSettingsURL().path.contains("MarkSweep/settings.json"))
+    }
+
+    func testVersion() {
+        XCTAssertEqual(markSweepVersion, "0.1.0")
+    }
+}
