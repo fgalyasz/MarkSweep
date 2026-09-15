@@ -1,6 +1,6 @@
 ---
 title: MarkSweep Gmail sweep
-status: ready-for-dev
+status: shipped
 created: 2026-09-15
 prd: _bmad-output/planning-artifacts/prds/prd-MarkSweep-gmail-sweep/prd.md
 ---
@@ -11,7 +11,7 @@ Scan Gmail, mark reclaimable mail on-device, review, sweep to Trash with a stora
 
 ## Stories
 
-1. **[STORY] Scan queries and Gmail client** — FR-1, FR-6
-2. **[STORY] Classifier and preview** — FR-2, FR-4
-3. **[STORY] Review queue and Trash sweep** — FR-3, FR-5
-4. **[TEST] Core coverage** — FR-1 through FR-6
+1. **[STORY] Scan queries and Gmail client** — [#7](https://github.com/fgalyasz/MarkSweep/issues/7) — FR-1, FR-6
+2. **[STORY] Classifier and preview** — [#8](https://github.com/fgalyasz/MarkSweep/issues/8) — FR-2, FR-4
+3. **[STORY] Review queue and Trash sweep** — [#9](https://github.com/fgalyasz/MarkSweep/issues/9) — FR-3, FR-5
+4. **[TEST] Gmail sweep core coverage** — [#10](https://github.com/fgalyasz/MarkSweep/issues/10) — FR-1 through FR-6

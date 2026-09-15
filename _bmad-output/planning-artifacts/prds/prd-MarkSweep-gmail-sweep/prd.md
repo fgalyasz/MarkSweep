@@ -3,7 +3,7 @@ title: MarkSweep Gmail sweep
 status: final
 created: 2026-09-15
 updated: 2026-09-15
-parent_issue: pending
+parent_issue: https://github.com/fgalyasz/MarkSweep/issues/6
 ---
 
 # PRD: MarkSweep Gmail sweep

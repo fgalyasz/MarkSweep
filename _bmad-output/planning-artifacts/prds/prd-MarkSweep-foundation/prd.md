@@ -3,7 +3,7 @@ title: MarkSweep foundation
 status: final
 created: 2026-09-15
 updated: 2026-09-15
-parent_issue: pending
+parent_issue: https://github.com/fgalyasz/MarkSweep/issues/1
 ---
 
 # PRD: MarkSweep foundation
