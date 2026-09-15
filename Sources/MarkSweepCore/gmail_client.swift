@@ -55,10 +55,16 @@ public func listIds(client: GmailClient, query: String, cap: Int) async throws -
     return Array(all.prefix(cap))
 }
 
-public func collectScanIds(client: GmailClient, largeBytes: Int, cap: Int) async throws -> [String] {
+public func collectScanIds(
+    client: GmailClient,
+    largeBytes: Int,
+    cap: Int,
+    sleeper: Sleeper = ImmediateSleeper()
+) async throws -> [String] {
     let queries = gmailScanQueries(largeMegabytes: largeMegabytes(fromBytes: largeBytes))
     var all: [String] = []
     for query in queries {
+        await sleeper.sleep(seconds: gmailScanPauseSeconds)
         all.append(contentsOf: try await listIds(client: client, query: query, cap: cap))
     }
     return uniqueIds(all)
@@ -81,12 +87,46 @@ public func scanInboxKeep(client: GmailClient, id: String, largeBytes: Int) asyn
     return reviewItem(from: full, verdict: verdict)
 }
 
-public func scanMessages(client: GmailClient, ids: [String], largeBytes: Int) async throws -> [ReviewItem] {
+public func scanMessages(
+    client: GmailClient,
+    ids: [String],
+    largeBytes: Int,
+    sleeper: Sleeper = ImmediateSleeper()
+) async throws -> ScanOutcome {
     var items: [ReviewItem] = []
     for id in ids {
-        items.append(try await scanOneMessage(client: client, id: id, largeBytes: largeBytes))
+        guard let item = try await scanStepped(client: client, id: id, largeBytes: largeBytes, sleeper: sleeper) else {
+            return ScanOutcome(items: items, stoppedEarly: true)
+        }
+        items.append(item)
     }
-    return items
+    return ScanOutcome(items: items, stoppedEarly: false)
+}
+
+public func scanStepped(
+    client: GmailClient,
+    id: String,
+    largeBytes: Int,
+    sleeper: Sleeper
+) async throws -> ReviewItem? {
+    await sleeper.sleep(seconds: gmailScanPauseSeconds)
+    return try await scanSteppedAfterPause(client: client, id: id, largeBytes: largeBytes, sleeper: sleeper)
+}
+
+func scanSteppedAfterPause(
+    client: GmailClient,
+    id: String,
+    largeBytes: Int,
+    sleeper: Sleeper
+) async throws -> ReviewItem? {
+    do {
+        return try await performWithQuotaRetry(sleeper: sleeper) {
+            try await scanOneMessage(client: client, id: id, largeBytes: largeBytes)
+        }
+    } catch {
+        if isQuotaError(error) { return nil }
+        throw error
+    }
 }
 
 public func trashSelected(client: GmailClient, ids: [String]) async -> SweepResult {

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3 — 2026-09-15
+
+- Scan paces Gmail calls and keeps partial results when the per-minute quota is hit. Default cap is 40 per query.
+
 ## 0.1.2 — 2026-09-15
 
 - After Google sign-in, a 403 names the cause. If Gmail API is off, the app tells you to enable it.

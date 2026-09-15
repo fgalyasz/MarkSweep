@@ -82,15 +82,18 @@ final class AppSession: ObservableObject {
             let ids = try await collectScanIds(
                 client: client,
                 largeBytes: self.settings.largeBytesThreshold,
-                cap: self.settings.perQueryCap
+                cap: self.settings.perQueryCap,
+                sleeper: TaskSleeper()
             )
-            self.items = try await scanMessages(
+            let outcome = try await scanMessages(
                 client: client,
                 ids: ids,
-                largeBytes: self.settings.largeBytesThreshold
+                largeBytes: self.settings.largeBytesThreshold,
+                sleeper: TaskSleeper()
             )
+            self.items = outcome.items
             self.selectedID = self.visibleItems.first?.id
-            self.statusText = "Scanned \(self.items.count) messages."
+            self.statusText = scanStatusText(outcome)
         }
     }
 

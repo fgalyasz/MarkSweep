@@ -10,7 +10,7 @@ public struct MarkSweepSettings: Equatable, Codable {
     public static let `default` = MarkSweepSettings(
         lastEmail: nil,
         largeBytesThreshold: 5_000_000,
-        perQueryCap: 500
+        perQueryCap: 40
     )
 
     public init(lastEmail: String?, largeBytesThreshold: Int, perQueryCap: Int) {
@@ -27,7 +27,19 @@ public func defaultSettingsURL() -> URL {
 
 public func loadSettings(from url: URL) -> MarkSweepSettings {
     guard let data = try? Data(contentsOf: url) else { return .default }
-    return (try? JSONDecoder().decode(MarkSweepSettings.self, from: data)) ?? .default
+    let loaded = (try? JSONDecoder().decode(MarkSweepSettings.self, from: data)) ?? .default
+    let migrated = migrateSettings(loaded)
+    if migrated != loaded { try? saveSettings(migrated, to: url) }
+    return migrated
+}
+
+public func migrateSettings(_ settings: MarkSweepSettings) -> MarkSweepSettings {
+    if settings.perQueryCap != 500 { return settings }
+    return MarkSweepSettings(
+        lastEmail: settings.lastEmail,
+        largeBytesThreshold: settings.largeBytesThreshold,
+        perQueryCap: MarkSweepSettings.default.perQueryCap
+    )
 }
 
 public func saveSettings(_ settings: MarkSweepSettings, to url: URL) throws {

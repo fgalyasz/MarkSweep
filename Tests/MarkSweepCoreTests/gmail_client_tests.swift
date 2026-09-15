@@ -129,8 +129,43 @@ final class GmailClientTests: XCTestCase {
         ])
         let transport = ScriptedTransport(queue: [(200, message)])
         let client = GmailClient(transport: transport, accessToken: "t")
-        let items = try await scanMessages(client: client, ids: ["m"], largeBytes: 5_000_000)
-        XCTAssertEqual(items.first?.verdict, .spamLike)
+        let outcome = try await scanMessages(client: client, ids: ["m"], largeBytes: 5_000_000)
+        XCTAssertEqual(outcome.items.first?.verdict, .spamLike)
+        XCTAssertFalse(outcome.stoppedEarly)
+    }
+
+    func testScanStopsOnQuota() async throws {
+        let ok = try jsonData([
+            "id": "a",
+            "labelIds": ["SPAM"],
+            "snippet": "x",
+            "sizeEstimate": 1,
+            "payload": ["headers": [["name": "Subject", "value": "A"]]]
+        ])
+        let quota = Data("{\"error\":{\"message\":\"Quota exceeded for quota metric Total Query Cost\"}}".utf8)
+        let transport = ScriptedTransport(queue: [(200, ok), (403, quota), (403, quota), (403, quota), (403, quota)])
+        let client = GmailClient(transport: transport, accessToken: "t")
+        let outcome = try await scanMessages(client: client, ids: ["a", "b"], largeBytes: 5_000_000)
+        XCTAssertEqual(outcome.items.map(\.id), ["a"])
+        XCTAssertTrue(outcome.stoppedEarly)
+    }
+
+    func testQuotaRetryThenSucceeds() async throws {
+        let quota = Data("{\"error\":{\"message\":\"Quota exceeded for quota metric Total Query Cost\"}}".utf8)
+        let ok = try jsonData([
+            "id": "m",
+            "labelIds": ["SPAM"],
+            "snippet": "x",
+            "sizeEstimate": 1,
+            "payload": ["headers": [["name": "Subject", "value": "A"]]]
+        ])
+        let sleeper = RecordingSleeper()
+        let transport = ScriptedTransport(queue: [(403, quota), (200, ok)])
+        let client = GmailClient(transport: transport, accessToken: "t")
+        let item = try await scanStepped(client: client, id: "m", largeBytes: 5_000_000, sleeper: sleeper)
+        XCTAssertEqual(item?.id, "m")
+        XCTAssertEqual(sleeper.sleeps.first, gmailScanPauseSeconds)
+        XCTAssertEqual(sleeper.sleeps.dropFirst().first, 1)
     }
 }
 

@@ -55,8 +55,15 @@ public func httpStatusText(_ status: Int, detail: String) -> String {
     if status == 403, detail.lowercased().contains("has not been used") {
         return "Enable the Gmail API in Google Cloud Console, then Connect again."
     }
+    if quotaStatus(status), isQuotaDetail(detail) {
+        return "Gmail rate limit hit. Wait a minute, then Scan again."
+    }
     if detail.isEmpty { return "Gmail HTTP \(status)." }
     return "Gmail HTTP \(status): \(detail)"
+}
+
+public func quotaStatus(_ status: Int) -> Bool {
+    status == 403 || status == 429
 }
 
 public enum GmailFormat: String {

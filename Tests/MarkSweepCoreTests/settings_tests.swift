@@ -35,4 +35,20 @@ final class SettingsTests: XCTestCase {
     func testVersion() {
         XCTAssertEqual(markSweepVersion, "0.1.0")
     }
+
+    func testMigrateOldDefaultCap() {
+        let old = MarkSweepSettings(lastEmail: "a@b.com", largeBytesThreshold: 9, perQueryCap: 500)
+        XCTAssertEqual(migrateSettings(old).perQueryCap, 40)
+        XCTAssertEqual(migrateSettings(old).lastEmail, "a@b.com")
+    }
+
+    func testMigrateLeavesCustomCap() {
+        let custom = MarkSweepSettings(lastEmail: nil, largeBytesThreshold: 9, perQueryCap: 20)
+        XCTAssertEqual(migrateSettings(custom), custom)
+    }
+
+    func testScanStatusText() {
+        XCTAssertEqual(scanStatusText(ScanOutcome(items: [], stoppedEarly: false)), "Scanned 0 messages.")
+        XCTAssertTrue(scanStatusText(ScanOutcome(items: [], stoppedEarly: true)).contains("slow down"))
+    }
 }

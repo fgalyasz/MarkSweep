@@ -70,6 +70,11 @@ final class GmailQueryTests: XCTestCase {
         XCTAssertEqual(text, "Enable the Gmail API in Google Cloud Console, then Connect again.")
     }
 
+    func testHttpStatusTextForQuota() {
+        let text = httpStatusText(403, detail: "Quota exceeded for quota metric 'Total Query Cost'")
+        XCTAssertEqual(text, "Gmail rate limit hit. Wait a minute, then Scan again.")
+    }
+
     func testParseList() throws {
         let data = Data("{\"messages\":[{\"id\":\"a\"}],\"nextPageToken\":\"n\"}".utf8)
         let page = try parseGmailMessageList(data: data)
