@@ -32,7 +32,31 @@ public func requireHTTPData(_ pair: (Data, URLResponse)) throws -> Data {
     let response = pair.1 as? HTTPURLResponse
     let status = response?.statusCode ?? 0
     if (200..<300).contains(status) { return pair.0 }
-    throw MarkSweepError.httpStatus(status)
+    throw MarkSweepError.httpStatus(status, googleErrorDetail(pair.0))
+}
+
+public func googleErrorDetail(_ data: Data) -> String {
+    guard let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        return ""
+    }
+    return googleErrorMessage(object)
+}
+
+public func googleErrorMessage(_ object: [String: Any]) -> String {
+    if let nested = object["error"] as? [String: Any], let message = nested["message"] as? String {
+        return message
+    }
+    if let description = object["error_description"] as? String { return description }
+    if let error = object["error"] as? String { return error }
+    return ""
+}
+
+public func httpStatusText(_ status: Int, detail: String) -> String {
+    if status == 403, detail.lowercased().contains("has not been used") {
+        return "Enable the Gmail API in Google Cloud Console, then Connect again."
+    }
+    if detail.isEmpty { return "Gmail HTTP \(status)." }
+    return "Gmail HTTP \(status): \(detail)"
 }
 
 public enum GmailFormat: String {

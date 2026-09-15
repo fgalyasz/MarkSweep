@@ -2,7 +2,7 @@ import Foundation
 
 public enum MarkSweepError: Error, Equatable {
     case notConnected
-    case httpStatus(Int)
+    case httpStatus(Int, String)
     case decode
     case oauthDenied
     case oauthStateMismatch

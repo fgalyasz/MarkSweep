@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 — 2026-09-15
+
+- After Google sign-in, a 403 names the cause. If Gmail API is off, the app tells you to enable it.
+
 ## 0.1.1 — 2026-09-15
 
 - `swift run MarkSweep` brings a window to the front. An unbundled process no longer sits in the terminal with no UI.

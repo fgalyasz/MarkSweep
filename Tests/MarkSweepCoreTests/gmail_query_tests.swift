@@ -48,8 +48,26 @@ final class GmailQueryTests: XCTestCase {
         XCTAssertEqual(try requireHTTPData((Data(), ok)), Data())
         let bad = HTTPURLResponse(url: url, statusCode: 403, httpVersion: nil, headerFields: nil)!
         XCTAssertThrowsError(try requireHTTPData((Data(), bad))) { error in
-            XCTAssertEqual(error as? MarkSweepError, .httpStatus(403))
+            XCTAssertEqual(error as? MarkSweepError, .httpStatus(403, ""))
         }
+    }
+
+    func testRequireHTTPDataIncludesGoogleMessage() {
+        let url = URL(string: "https://example.com")!
+        let bad = HTTPURLResponse(url: url, statusCode: 403, httpVersion: nil, headerFields: nil)!
+        let body = Data("{\"error\":{\"message\":\"Gmail API has not been used in project 1 before or it is disabled.\"}}".utf8)
+        XCTAssertThrowsError(try requireHTTPData((body, bad))) { error in
+            guard case let MarkSweepError.httpStatus(status, detail) = error else {
+                return XCTFail("wrong error")
+            }
+            XCTAssertEqual(status, 403)
+            XCTAssertTrue(detail.contains("Gmail API has not been used"))
+        }
+    }
+
+    func testHttpStatusTextForDisabledAPI() {
+        let text = httpStatusText(403, detail: "Gmail API has not been used in project X before or it is disabled.")
+        XCTAssertEqual(text, "Enable the Gmail API in Google Cloud Console, then Connect again.")
     }
 
     func testParseList() throws {

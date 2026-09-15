@@ -185,8 +185,8 @@ func errorMessage(_ error: MarkSweepError) -> String {
         return "Not connected."
     case .listenFailed:
         return "Could not open a local port for Google sign-in."
-    case .httpStatus(let status):
-        return "Gmail HTTP \(status)."
+    case .httpStatus(let status, let detail):
+        return httpStatusText(status, detail: detail)
     case .decode:
         return "Could not read a Gmail or OAuth response."
     case .notConnected:

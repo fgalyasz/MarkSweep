@@ -113,7 +113,7 @@ final class GmailClientTests: XCTestCase {
             _ = try await client.profileEmail()
             XCTFail("expected throw")
         } catch let error as MarkSweepError {
-            XCTAssertEqual(error, .httpStatus(401))
+            XCTAssertEqual(error, .httpStatus(401, ""))
         } catch {
             XCTFail("wrong error")
         }
