@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.9 — 2026-09-16
+
+- Gmail tokens use the data-protection keychain so `swift run` does not ask for the login password every launch.
+
 ## 0.1.8 — 2026-09-16
 
 - Keep rules: delete button, right-click a message to add From/To/Subject, and no duplicate rows.

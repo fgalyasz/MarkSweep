@@ -3,8 +3,8 @@ import Security
 import MarkSweepCore
 
 struct KeychainTokenStore: TokenStoring {
-    let service = "com.tenprintsoftware.MarkSweep"
-    let account = "gmail-oauth"
+    let service = markSweepKeychainService
+    let account = markSweepKeychainAccount
 
     func load() throws -> OAuthToken? {
         var item: CFTypeRef?
@@ -22,28 +22,6 @@ struct KeychainTokenStore: TokenStoring {
     func clear() throws {
         SecItemDelete(keychainBaseQuery() as CFDictionary)
     }
-}
-
-func keychainBaseQuery() -> [String: Any] {
-    [
-        kSecClass as String: kSecClassGenericPassword,
-        kSecAttrService as String: "com.tenprintsoftware.MarkSweep",
-        kSecAttrAccount as String: "gmail-oauth"
-    ]
-}
-
-func keychainLoadQuery() -> [String: Any] {
-    var query = keychainBaseQuery()
-    query[kSecReturnData as String] = true
-    query[kSecMatchLimit as String] = kSecMatchLimitOne
-    return query
-}
-
-func keychainAddQuery(data: Data) -> [String: Any] {
-    var query = keychainBaseQuery()
-    query[kSecValueData as String] = data
-    query[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlock
-    return query
 }
 
 func tokenFromKeychain(status: OSStatus, item: CFTypeRef?) throws -> OAuthToken? {
