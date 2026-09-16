@@ -136,20 +136,32 @@ struct KeepRuleContextMenu: View {
     var body: some View {
         Menu("Keep") {
             ForEach(keepRuleSuggestions(from: item.matchFields)) { suggestion in
-                keepSuggestionButton(suggestion)
+                Menu(keepSuggestionTitle(suggestion)) {
+                    keepDurationButtons(suggestion)
+                }
             }
         }
     }
 
-    func keepSuggestionButton(_ suggestion: KeepRuleSuggestion) -> some View {
-        Button(keepSuggestionTitle(suggestion)) {
-            session.addKeepRule(from: suggestion)
+    func keepDurationButtons(_ suggestion: KeepRuleSuggestion) -> some View {
+        Group {
+            keepSuggestionButton(suggestion, days: nil, title: "Forever")
+            ForEach(keepDayPresets, id: \.self) { days in
+                keepSuggestionButton(suggestion, days: days, title: keepDaysMenuTitle(days))
+            }
+        }
+    }
+
+    func keepSuggestionButton(_ suggestion: KeepRuleSuggestion, days: Int?, title: String) -> some View {
+        Button(title) {
+            session.addKeepRule(from: suggestion, keepDays: days)
         }
         .disabled(keepRuleExists(
             session.settings.keepRules,
             field: suggestion.field,
             match: suggestion.match,
-            value: suggestion.value
+            value: suggestion.value,
+            keepDays: days
         ))
     }
 }

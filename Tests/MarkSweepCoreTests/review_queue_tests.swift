@@ -11,14 +11,15 @@ func sampleItem(
     isProtected: Bool = false,
     from: String = "s@x.com",
     to: String = "",
-    subject: String? = nil
+    subject: String? = nil,
+    date: Date = Date(timeIntervalSince1970: 0)
 ) -> ReviewItem {
     ReviewItem(
         id: id,
         selected: selected,
         verdict: verdict,
         reason: reason,
-        date: Date(timeIntervalSince1970: 0),
+        date: date,
         sizeBytes: size,
         preview: "p",
         isSpamFolder: spamFolder,

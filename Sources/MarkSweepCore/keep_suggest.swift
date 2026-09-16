@@ -54,6 +54,10 @@ public func keepSuggestionTitle(_ suggestion: KeepRuleSuggestion) -> String {
     "\(keepFieldTitle(suggestion.field)): \(suggestion.value)"
 }
 
-public func makeKeepRule(from suggestion: KeepRuleSuggestion) -> KeepRule {
-    makeKeepRule(field: suggestion.field, match: suggestion.match, value: suggestion.value)
+public func makeKeepRule(from suggestion: KeepRuleSuggestion, keepDays: Int? = nil) -> KeepRule {
+    makeKeepRule(field: suggestion.field, match: suggestion.match, value: suggestion.value, keepDays: keepDays)
+}
+
+public func keepDaysMenuTitle(_ days: Int) -> String {
+    "\(days) days"
 }

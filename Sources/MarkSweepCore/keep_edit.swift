@@ -8,9 +8,15 @@ public func keepRulesAreDuplicates(_ left: KeepRule, _ right: KeepRule) -> Bool 
     keepRuleIdentity(left) == keepRuleIdentity(right)
 }
 
-public func keepRuleExists(_ rules: [KeepRule], field: KeepField, match: KeepMatch, value: String) -> Bool {
-    let probe = KeepRule(id: "", field: field, match: match, value: value)
-    return rules.contains { keepRulesAreDuplicates($0, probe) }
+public func keepRuleExists(
+    _ rules: [KeepRule],
+    field: KeepField,
+    match: KeepMatch,
+    value: String,
+    keepDays: Int? = nil
+) -> Bool {
+    let probe = KeepRule(id: "", field: field, match: match, value: value, keepDays: keepDays)
+    return rules.contains { keepRulesAreDuplicates($0, probe) && $0.keepDays == probe.keepDays }
 }
 
 public func uniqueKeepRules(_ rules: [KeepRule]) -> [KeepRule] {
@@ -19,8 +25,27 @@ public func uniqueKeepRules(_ rules: [KeepRule]) -> [KeepRule] {
 }
 
 public func insertingKeepRule(_ rules: [KeepRule], _ rule: KeepRule) -> [KeepRule] {
-    if rules.contains(where: { keepRulesAreDuplicates($0, rule) }) { return rules }
+    upsertingKeepRule(rules, rule)
+}
+
+public func upsertingKeepRule(_ rules: [KeepRule], _ rule: KeepRule) -> [KeepRule] {
+    if let index = rules.firstIndex(where: { keepRulesAreDuplicates($0, rule) }) {
+        return replacingKeepRule(rules, at: index, with: rule)
+    }
     return rules + [rule]
+}
+
+func replacingKeepRule(_ rules: [KeepRule], at index: Int, with rule: KeepRule) -> [KeepRule] {
+    var next = rules
+    let existing = rules[index]
+    next[index] = KeepRule(
+        id: existing.id,
+        field: existing.field,
+        match: existing.match,
+        value: existing.value,
+        keepDays: rule.keepDays
+    )
+    return next
 }
 
 public func updatedKeepRules(_ rules: [KeepRule], replacing rule: KeepRule) -> [KeepRule] {

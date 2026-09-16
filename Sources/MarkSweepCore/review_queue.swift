@@ -31,6 +31,7 @@ public struct ReviewItem: Equatable, Identifiable {
     public let baseVerdict: MessageVerdictKind
     public let baseReason: String
     public let matchFields: MessageMatchFields
+    public let isKeepExpired: Bool
 
     public var subject: String { matchFields.subject }
     public var sender: String { matchFields.from }
@@ -47,7 +48,8 @@ public struct ReviewItem: Equatable, Identifiable {
         isProtected: Bool,
         baseVerdict: MessageVerdictKind,
         baseReason: String,
-        matchFields: MessageMatchFields
+        matchFields: MessageMatchFields,
+        isKeepExpired: Bool = false
     ) {
         self.id = id
         self.selected = selected
@@ -61,6 +63,7 @@ public struct ReviewItem: Equatable, Identifiable {
         self.baseVerdict = baseVerdict
         self.baseReason = baseReason
         self.matchFields = matchFields
+        self.isKeepExpired = isKeepExpired
     }
 }
 
@@ -77,7 +80,8 @@ public func reviewItem(from features: MessageFeatures, verdict: MessageVerdict) 
         isProtected: false,
         baseVerdict: verdict.kind,
         baseReason: verdict.reason,
-        matchFields: matchFields(from: features)
+        matchFields: matchFields(from: features),
+        isKeepExpired: false
     )
 }
 
@@ -86,7 +90,8 @@ public func overlayReviewItem(
     selected: Bool,
     verdict: MessageVerdictKind,
     reason: String,
-    isProtected: Bool
+    isProtected: Bool,
+    isKeepExpired: Bool = false
 ) -> ReviewItem {
     ReviewItem(
         id: item.id,
@@ -100,7 +105,8 @@ public func overlayReviewItem(
         isProtected: isProtected,
         baseVerdict: item.baseVerdict,
         baseReason: item.baseReason,
-        matchFields: item.matchFields
+        matchFields: item.matchFields,
+        isKeepExpired: isKeepExpired
     )
 }
 
@@ -142,7 +148,16 @@ public func setVisibleSelection(_ items: [ReviewItem], filter: ReviewFilter, sel
 
 func setOneVisibleSelection(_ item: ReviewItem, filter: ReviewFilter, selected: Bool) -> ReviewItem {
     guard itemMatchesFilter(item, filter: filter) else { return item }
-    if item.isProtected { return overlayReviewItem(item, selected: false, verdict: item.verdict, reason: item.reason, isProtected: true) }
+    if item.isProtected {
+        return overlayReviewItem(
+            item,
+            selected: false,
+            verdict: item.verdict,
+            reason: item.reason,
+            isProtected: true,
+            isKeepExpired: item.isKeepExpired
+        )
+    }
     var copy = item
     copy.selected = selected
     return copy

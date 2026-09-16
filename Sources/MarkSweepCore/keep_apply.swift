@@ -30,13 +30,24 @@ func emailMatch(_ match: NSTextCheckingResult, raw: String) -> String? {
     Range(match.range, in: raw).map { String(raw[$0]) }
 }
 
-public func applyKeepRulesToItems(_ items: [ReviewItem], rules: [KeepRule]) -> [ReviewItem] {
-    items.map { applyKeepRulesToItem($0, rules: rules) }
+public func applyKeepRulesToItems(
+    _ items: [ReviewItem],
+    rules: [KeepRule],
+    now: Date = Date()
+) -> [ReviewItem] {
+    items.map { applyKeepRulesToItem($0, rules: rules, now: now) }
 }
 
-public func applyKeepRulesToItem(_ item: ReviewItem, rules: [KeepRule]) -> ReviewItem {
+public func applyKeepRulesToItem(
+    _ item: ReviewItem,
+    rules: [KeepRule],
+    now: Date = Date()
+) -> ReviewItem {
     guard let rule = firstMatchingKeepRule(rules, fields: item.matchFields) else {
         return restoreBaseItem(item)
+    }
+    if keepRuleIsExpired(keepDays: rule.keepDays, messageDate: item.date, now: now) {
+        return expireItem(item, reason: keepExpiredReason(rule))
     }
     return protectItem(item, reason: keepRuleReason(rule))
 }

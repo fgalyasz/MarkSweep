@@ -99,8 +99,9 @@ final class AppSession: ObservableObject {
                 sleeper: TaskSleeper()
             )
             self.items = applyKeepRulesToItems(outcome.items, rules: self.settings.keepRules)
+            let expiredCount = await self.autoTrashExpired(client: client)
             self.selectedID = self.visibleItems.first?.id
-            self.statusText = scanStatusText(outcome)
+            self.statusText = scanStatusWithExpiry(scanStatusText(outcome), expired: expiredCount)
             await self.refreshMailboxSnapshot()
         }
     }
@@ -216,17 +217,26 @@ final class AppSession: ObservableObject {
         isBusy = false
     }
 
+    func autoTrashExpired(client: GmailClient) async -> Int {
+        let expired = expiredKeepItems(items)
+        if expired.isEmpty { return 0 }
+        let result = await trashSelected(client: client, ids: expired.map(\.id))
+        recordSweep(items: items, result: result)
+        items = removeTrashed(items, trashedIds: result.trashedIds)
+        return result.trashedIds.count
+    }
+
     func addKeepRule() {
         insertKeepRule(makeKeepRule())
     }
 
-    func addKeepRule(from suggestion: KeepRuleSuggestion) {
-        insertKeepRule(makeKeepRule(from: suggestion))
+    func addKeepRule(from suggestion: KeepRuleSuggestion, keepDays: Int? = nil) {
+        insertKeepRule(makeKeepRule(from: suggestion, keepDays: keepDays))
     }
 
     func insertKeepRule(_ rule: KeepRule) {
-        let next = insertingKeepRule(settings.keepRules, rule)
-        if next.count == settings.keepRules.count {
+        let next = upsertingKeepRule(settings.keepRules, rule)
+        if next == settings.keepRules {
             statusText = "That keep rule already exists."
             return
         }

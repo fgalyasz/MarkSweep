@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.10 — 2026-09-16
+
+- Keep rules can keep matching mail for a set number of days. Empty Days means forever. After the window, Scan moves those messages to Trash.
+
 ## 0.1.9 — 2026-09-16
 
 - Gmail tokens use the data-protection keychain so `swift run` does not ask for the login password every launch.

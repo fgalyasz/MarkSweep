@@ -19,6 +19,10 @@ struct PreviewPane: View {
                             Text("Protected — never swept.")
                                 .foregroundStyle(.secondary)
                         }
+                        if item.isKeepExpired {
+                            Text("Keep window ended — Trash on Scan.")
+                                .foregroundStyle(.secondary)
+                        }
                         Divider()
                         Text(item.preview.isEmpty ? "No preview." : item.preview)
                             .textSelection(.enabled)

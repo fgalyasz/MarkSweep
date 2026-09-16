@@ -110,6 +110,8 @@ final class KeepRulesTests: XCTestCase {
         XCTAssertEqual(ruleBySettingField(rule, .subject).field, .subject)
         XCTAssertEqual(ruleBySettingMatch(rule, .exact).match, .exact)
         XCTAssertEqual(ruleBySettingValue(rule, "b").value, "b")
+        XCTAssertEqual(ruleBySettingKeepDays(rule, 7).keepDays, 7)
+        XCTAssertNil(ruleBySettingKeepDays(rule, 0).keepDays)
     }
 
     func testMatchFieldsFromFeatures() {

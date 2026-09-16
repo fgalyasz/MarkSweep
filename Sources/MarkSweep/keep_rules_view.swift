@@ -7,7 +7,7 @@ struct KeepRulesView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("Matching messages stay out of Trash.")
+            Text("Matching messages stay out of Trash. Empty Days = forever. Older mail is auto-trashed on Scan.")
                 .foregroundStyle(.secondary)
             List {
                 ForEach(session.settings.keepRules) { rule in
@@ -22,7 +22,7 @@ struct KeepRulesView: View {
             keepRulesButtons
         }
         .padding(16)
-        .frame(minWidth: 560, minHeight: 320)
+        .frame(minWidth: 640, minHeight: 320)
     }
 
     var keepRulesButtons: some View {
@@ -53,6 +53,9 @@ struct KeepRuleEditor: View {
             .labelsHidden()
             .frame(width: 110)
             TextField("Value", text: valueBind)
+            TextField("Days", text: daysBind)
+                .frame(width: 52)
+                .help("Blank = keep forever")
             Button(role: .destructive, action: onDelete) {
                 Image(systemName: "trash")
             }
@@ -71,5 +74,12 @@ struct KeepRuleEditor: View {
 
     var valueBind: Binding<String> {
         Binding(get: { rule.value }, set: { onChange(ruleBySettingValue(rule, $0)) })
+    }
+
+    var daysBind: Binding<String> {
+        Binding(
+            get: { keepDaysText(rule.keepDays) },
+            set: { onChange(ruleBySettingKeepDays(rule, parseKeepDays($0))) }
+        )
     }
 }
