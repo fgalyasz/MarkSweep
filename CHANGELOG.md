@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.6 — 2026-09-16
+
+- Stats header keeps full digits at the default window size. Metrics wrap instead of showing ellipsis; storage shows used bytes as the headline.
+
 ## 0.1.5 — 2026-09-16
 
 - Review chrome is Mail-like: filters in the sidebar with counts, mailbox/storage/cleaned in a header above the list.

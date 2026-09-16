@@ -28,7 +28,7 @@ struct PreviewPane: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .frame(minWidth: 280)
+        .frame(minWidth: 220)
     }
 }
 

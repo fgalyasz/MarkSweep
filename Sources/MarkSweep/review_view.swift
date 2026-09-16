@@ -11,6 +11,7 @@ struct ReviewView: View {
             messageColumn
         } detail: {
             PreviewPane(item: session.selectedItem)
+                .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
         }
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { SweepBar() }
@@ -36,6 +37,7 @@ struct ReviewView: View {
             }
             messageList
         }
+        .navigationSplitViewColumnWidth(min: 400, ideal: 560)
     }
 
     var messageList: some View {

@@ -31,10 +31,19 @@ public func quotaFillRatio(_ quota: StorageQuota) -> Double? {
     return min(1, max(0, raw))
 }
 
+public func storageHeadline(_ quota: StorageQuota) -> String {
+    formatBytes64(quota.usage)
+}
+
 public func storagePairLine(_ quota: StorageQuota) -> String {
     let used = formatBytes64(quota.usage)
     guard let limit = quota.limit else { return "\(used) used" }
     return "\(used) / \(formatBytes64(limit))"
+}
+
+public func storageDetailLine(_ quota: StorageQuota) -> String? {
+    guard let limit = quota.limit else { return nil }
+    return "of \(formatBytes64(limit))"
 }
 
 public func storageFreeLine(_ quota: StorageQuota) -> String? {

@@ -10,8 +10,9 @@ struct MarkSweepApp: App {
         WindowGroup("MarkSweep") {
             RootView()
                 .environmentObject(session)
-                .frame(minWidth: 840, minHeight: 520)
+                .frame(minWidth: 920, minHeight: 520)
                 .onAppear(perform: becomeRegularApp)
         }
+        .defaultSize(width: 1100, height: 640)
     }
 }

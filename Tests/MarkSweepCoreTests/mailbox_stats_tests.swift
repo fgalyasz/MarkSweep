@@ -110,6 +110,10 @@ final class MailboxStatsTests: XCTestCase {
     func testStoragePairAndFree() {
         let quota = StorageQuota(usage: 40, limit: 150)
         XCTAssertTrue(storagePairLine(quota).contains("/"))
+        XCTAssertFalse(storageHeadline(quota).contains("/"))
+        XCTAssertEqual(storageHeadline(quota), formatBytes64(40))
+        XCTAssertTrue(storageDetailLine(quota)!.contains("of"))
+        XCTAssertNil(storageDetailLine(StorageQuota(usage: 9, limit: nil)))
         XCTAssertTrue(storageFreeLine(quota)!.contains("free"))
         XCTAssertNil(storageFreeLine(StorageQuota(usage: 9, limit: nil)))
     }

@@ -8,15 +8,14 @@ struct StatsMetric: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
-            Text(title)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            metricTitle(title)
             Text(value)
                 .font(.title3.weight(.semibold))
                 .monospacedDigit()
-                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
             detailText
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
 
@@ -25,9 +24,16 @@ struct StatsMetric: View {
             Text(detail)
                 .font(.caption)
                 .foregroundStyle(.secondary)
-                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
         }
     }
+}
+
+func metricTitle(_ title: String) -> some View {
+    Text(title)
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .fixedSize(horizontal: true, vertical: false)
 }
 
 struct StorageMetric: View {
@@ -35,30 +41,38 @@ struct StorageMetric: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Storage")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            metricTitle("Storage")
             Text(storageValue)
                 .font(.title3.weight(.semibold))
                 .monospacedDigit()
-                .lineLimit(1)
+                .fixedSize(horizontal: true, vertical: false)
+            limitCaption
             fillBar
             freeText
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .help(mailboxQuotaNote())
         .accessibilityElement(children: .combine)
     }
 
     var storageValue: String {
         guard let quota else { return "Unavailable" }
-        return storagePairLine(quota)
+        return storageHeadline(quota)
+    }
+
+    @ViewBuilder var limitCaption: some View {
+        if let quota, let detail = storageDetailLine(quota) {
+            Text(detail)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: true, vertical: false)
+        }
     }
 
     @ViewBuilder var fillBar: some View {
         if let quota, let ratio = quotaFillRatio(quota) {
             ProgressView(value: ratio)
                 .tint(ratio >= 0.9 ? Color.orange : Color.accentColor)
-                .frame(width: 148)
         }
     }
 
@@ -67,6 +81,7 @@ struct StorageMetric: View {
             Text(free)
                 .font(.caption)
                 .foregroundStyle(.secondary)
+                .fixedSize(horizontal: true, vertical: false)
         }
     }
 }
@@ -77,7 +92,7 @@ struct MailboxStatsBar: View {
     let scannedCount: Int
 
     var body: some View {
-        HStack(alignment: .top, spacing: 28) {
+        LazyVGrid(columns: statsBarColumns, alignment: .leading, spacing: 12) {
             StatsMetric(
                 title: "Mailbox",
                 value: mailboxCountLine(snapshot),
@@ -86,10 +101,13 @@ struct MailboxStatsBar: View {
             StorageMetric(quota: snapshot.quota)
             StatsMetric(title: "This session", value: mailboxCleanedSessionLine(snapshot))
             StatsMetric(title: "All time", value: mailboxCleanedLifetimeLine(snapshot))
-            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
         .background(.bar)
     }
 }
+
+let statsBarColumns = [
+    GridItem(.adaptive(minimum: 168), spacing: 16, alignment: .topLeading)
+]
