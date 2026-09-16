@@ -17,6 +17,7 @@ final class AppSession: ObservableObject {
     @Published var snapshot: MailboxSnapshot?
     @Published var sessionSweptCount = 0
     @Published var sessionSweptBytes = 0
+    var cleanablePageToken: String?
 
     let tokenStore: TokenStoring
     let transport: HTTPTransporting
@@ -70,6 +71,7 @@ final class AppSession: ObservableObject {
         snapshot = nil
         sessionSweptCount = 0
         sessionSweptBytes = 0
+        cleanablePageToken = nil
         settings = settingsWithEmail(settings, email: nil)
         try? saveSettings(settings, to: settingsURL)
         statusText = "Disconnected."
@@ -85,25 +87,53 @@ final class AppSession: ObservableObject {
 
     func scan() async {
         await runBusy {
-            let client = try await self.gmailClient()
-            let ids = try await collectScanIds(
-                client: client,
-                largeBytes: self.settings.largeBytesThreshold,
-                cap: self.settings.perQueryCap,
-                sleeper: TaskSleeper()
-            )
-            let outcome = try await scanMessages(
-                client: client,
-                ids: ids,
-                largeBytes: self.settings.largeBytesThreshold,
-                sleeper: TaskSleeper()
-            )
-            self.items = applyKeepRulesToItems(outcome.items, rules: self.settings.keepRules)
-            let expiredCount = await self.autoTrashExpired(client: client)
-            self.selectedID = self.visibleItems.first?.id
-            self.statusText = scanStatusWithExpiry(scanStatusText(outcome), expired: expiredCount)
-            await self.refreshMailboxSnapshot()
+            try await self.performScan()
         }
+    }
+
+    func performScan() async throws {
+        let client = try await gmailClient()
+        let batch = try await fetchScanBatch(client: client)
+        let outcome = try await scanNewMessages(client: client, ids: batch.ids)
+        applyScanOutcome(outcome, nextToken: batch.nextPageToken)
+        let expiredCount = await autoTrashExpired(client: client)
+        await finishScanStatus(outcome: outcome, expired: expiredCount)
+    }
+
+    func fetchScanBatch(client: GmailClient) async throws -> ScanIdBatch {
+        try await collectScanIds(
+            client: client,
+            largeBytes: settings.largeBytesThreshold,
+            cap: settings.perQueryCap,
+            sleeper: TaskSleeper(),
+            pageToken: items.isEmpty ? nil : cleanablePageToken
+        )
+    }
+
+    func scanNewMessages(client: GmailClient, ids: [String]) async throws -> ScanOutcome {
+        try await scanMessages(
+            client: client,
+            ids: unseenScanIds(ids, have: Set(items.map(\.id))),
+            largeBytes: settings.largeBytesThreshold,
+            sleeper: TaskSleeper()
+        )
+    }
+
+    func applyScanOutcome(_ outcome: ScanOutcome, nextToken: String?) {
+        cleanablePageToken = nextToken
+        items = applyKeepRulesToItems(mergingReviewItems(items, incoming: outcome.items), rules: settings.keepRules)
+        selectedID = visibleItems.first?.id
+    }
+
+    func finishScanStatus(outcome: ScanOutcome, expired: Int) async {
+        await refreshMailboxSnapshot()
+        let coverage = scanCoverageStatus(
+            scanned: items.count,
+            mailbox: snapshot?.messagesTotal ?? items.count,
+            hasMore: cleanablePageToken != nil,
+            stoppedEarly: outcome.stoppedEarly
+        )
+        statusText = scanStatusWithExpiry(coverage, expired: expired)
     }
 
     func sweep() async {

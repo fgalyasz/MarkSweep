@@ -43,15 +43,24 @@ final class GmailClientTests: XCTestCase {
         XCTAssertEqual(transport.requests.count, 1)
     }
 
+    func testListIdBatchReturnsToken() async throws {
+        let page = try jsonData(["messages": [["id": "a"], ["id": "b"]], "nextPageToken": "n"])
+        let transport = ScriptedTransport(queue: [(200, page)])
+        let client = GmailClient(transport: transport, accessToken: "t")
+        let batch = try await listIdBatch(client: client, query: "in:inbox", cap: 2)
+        XCTAssertEqual(batch.ids, ["a", "b"])
+        XCTAssertEqual(batch.nextPageToken, "n")
+    }
+
     func testCollectScanIdsUnique() async throws {
         let page = try jsonData(["messages": [["id": "a"]]])
         var queue: [(Int, Data)] = []
-        for _ in 0..<5 { queue.append((200, page)) }
+        for _ in 0..<(gmailScanQueries(largeMegabytes: 5).count + 1) { queue.append((200, page)) }
         let transport = ScriptedTransport(queue: queue)
         let client = GmailClient(transport: transport, accessToken: "t")
-        let ids = try await collectScanIds(client: client, largeBytes: 5_000_000, cap: 10)
+        let ids = try await collectScanIds(client: client, largeBytes: 5_000_000, cap: 10).ids
         XCTAssertEqual(ids, ["a"])
-        XCTAssertEqual(transport.requests.count, 5)
+        XCTAssertEqual(transport.requests.count, gmailScanQueries(largeMegabytes: 5).count + 1)
     }
 
     func testScanMetadataSpamDoesNotFetchBody() async throws {

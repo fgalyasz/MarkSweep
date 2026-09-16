@@ -63,6 +63,10 @@ public func showingCountLine(visible: Int, total: Int) -> String {
     "Showing \(visible) of \(total)"
 }
 
+public func scannedOfMailboxLine(scanned: Int, mailbox: Int) -> String {
+    "Scanned \(formatCount(scanned)) of \(formatCount(mailbox))"
+}
+
 public func formatBytes64(_ bytes: Int64) -> String {
     formatBytes(Int(clamping: bytes))
 }

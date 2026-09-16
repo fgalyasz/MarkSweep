@@ -125,4 +125,10 @@ final class SweepTests: XCTestCase {
     func testUniqueIdsPreserveOrder() {
         XCTAssertEqual(uniqueIds(["b", "a", "b"]), ["b", "a"])
     }
+
+    func testUnseenAndMerge() {
+        let have = [sampleItem(id: "1"), sampleItem(id: "2")]
+        XCTAssertEqual(unseenScanIds(["2", "3"], have: Set(have.map(\.id))), ["3"])
+        XCTAssertEqual(mergingReviewItems(have, incoming: [sampleItem(id: "2"), sampleItem(id: "3")]).map(\.id), ["1", "2", "3"])
+    }
 }

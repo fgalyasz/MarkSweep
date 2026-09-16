@@ -51,5 +51,8 @@ final class SettingsTests: XCTestCase {
     func testScanStatusText() {
         XCTAssertEqual(scanStatusText(ScanOutcome(items: [], stoppedEarly: false)), "Scanned 0 messages.")
         XCTAssertTrue(scanStatusText(ScanOutcome(items: [], stoppedEarly: true)).contains("slow down"))
+        XCTAssertTrue(scanCoverageStatus(scanned: 40, mailbox: 900, hasMore: true, stoppedEarly: false).contains("Scan again"))
+        XCTAssertTrue(scanCoverageStatus(scanned: 40, mailbox: 40, hasMore: false, stoppedEarly: false).contains("Caught up"))
+        XCTAssertTrue(scanCoverageStatus(scanned: 9, mailbox: 900, hasMore: true, stoppedEarly: true).contains("slow down"))
     }
 }

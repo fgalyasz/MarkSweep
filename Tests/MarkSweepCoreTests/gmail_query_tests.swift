@@ -5,8 +5,12 @@ final class GmailQueryTests: XCTestCase {
     func testQueriesIncludeCaps() {
         let queries = gmailScanQueries(largeMegabytes: 5)
         XCTAssertEqual(queries[0], "in:spam")
-        XCTAssertEqual(queries[3], "larger:5M")
-        XCTAssertTrue(queries.contains("in:inbox newer_than:365d"))
+        XCTAssertEqual(queries[5], "larger:5M")
+        XCTAssertTrue(queries.contains("in:inbox"))
+        XCTAssertFalse(queries.contains(where: { $0.contains("newer_than") }))
+        XCTAssertTrue(queries.contains("category:updates"))
+        XCTAssertTrue(queries.contains("category:forums"))
+        XCTAssertEqual(gmailCleanableQuery(), "-in:sent -in:drafts -in:trash -in:chats")
     }
 
     func testLargeMegabytesFloor() {

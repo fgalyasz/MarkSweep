@@ -50,32 +50,83 @@ public struct GmailClient {
     }
 }
 
-public func listIds(client: GmailClient, query: String, cap: Int) async throws -> [String] {
+public func listIds(client: GmailClient, query: String, cap: Int, startToken: String? = nil) async throws -> [String] {
+    try await listIdBatch(client: client, query: query, cap: cap, startToken: startToken).ids
+}
+
+public struct ListedIds: Equatable {
+    public let ids: [String]
+    public let nextPageToken: String?
+
+    public init(ids: [String], nextPageToken: String?) {
+        self.ids = ids
+        self.nextPageToken = nextPageToken
+    }
+}
+
+public struct ScanIdBatch: Equatable {
+    public let ids: [String]
+    public let nextPageToken: String?
+
+    public init(ids: [String], nextPageToken: String?) {
+        self.ids = ids
+        self.nextPageToken = nextPageToken
+    }
+}
+
+public func listIdBatch(
+    client: GmailClient,
+    query: String,
+    cap: Int,
+    startToken: String? = nil
+) async throws -> ListedIds {
     var all: [String] = []
-    var token: String?
+    var token = startToken
+    var lastNext: String?
     while all.count < cap {
-        let pageSize = min(100, cap - all.count)
-        let page = try await client.listPage(query: query, pageToken: token, maxResults: pageSize)
+        let page = try await fetchListPage(client: client, query: query, token: token, remaining: cap - all.count)
         all.append(contentsOf: page.ids)
+        lastNext = page.next
         if page.next == nil || page.ids.isEmpty { break }
         token = page.next
     }
-    return Array(all.prefix(cap))
+    return ListedIds(ids: Array(all.prefix(cap)), nextPageToken: all.count < cap ? nil : lastNext)
+}
+
+func fetchListPage(
+    client: GmailClient,
+    query: String,
+    token: String?,
+    remaining: Int
+) async throws -> (ids: [String], next: String?) {
+    try await client.listPage(query: query, pageToken: token, maxResults: min(100, remaining))
 }
 
 public func collectScanIds(
     client: GmailClient,
     largeBytes: Int,
     cap: Int,
-    sleeper: Sleeper = ImmediateSleeper()
+    sleeper: Sleeper = ImmediateSleeper(),
+    pageToken: String? = nil
+) async throws -> ScanIdBatch {
+    let priority = try await collectPriorityScanIds(client: client, largeBytes: largeBytes, cap: cap, sleeper: sleeper)
+    await sleeper.sleep(seconds: gmailScanPauseSeconds)
+    let extra = try await listIdBatch(client: client, query: gmailCleanableQuery(), cap: cap, startToken: pageToken)
+    return ScanIdBatch(ids: uniqueIds(priority + extra.ids), nextPageToken: extra.nextPageToken)
+}
+
+func collectPriorityScanIds(
+    client: GmailClient,
+    largeBytes: Int,
+    cap: Int,
+    sleeper: Sleeper
 ) async throws -> [String] {
-    let queries = gmailScanQueries(largeMegabytes: largeMegabytes(fromBytes: largeBytes))
     var all: [String] = []
-    for query in queries {
+    for query in gmailScanQueries(largeMegabytes: largeMegabytes(fromBytes: largeBytes)) {
         await sleeper.sleep(seconds: gmailScanPauseSeconds)
         all.append(contentsOf: try await listIds(client: client, query: query, cap: cap))
     }
-    return uniqueIds(all)
+    return all
 }
 
 public func scanOneMessage(client: GmailClient, id: String, largeBytes: Int) async throws -> ReviewItem {

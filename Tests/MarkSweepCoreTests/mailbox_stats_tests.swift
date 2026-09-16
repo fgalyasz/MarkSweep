@@ -62,6 +62,7 @@ final class MailboxStatsTests: XCTestCase {
 
     func testShowingCount() {
         XCTAssertEqual(showingCountLine(visible: 1, total: 175), "Showing 1 of 175")
+        XCTAssertEqual(scannedOfMailboxLine(scanned: 2, mailbox: 9), "Scanned 2 of 9")
     }
 
     func testBytesForIds() {

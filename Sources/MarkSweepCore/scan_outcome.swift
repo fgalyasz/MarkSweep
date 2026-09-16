@@ -16,3 +16,13 @@ public func scanStatusText(_ outcome: ScanOutcome) -> String {
     }
     return "Scanned \(outcome.items.count) messages."
 }
+
+public func scanCoverageStatus(scanned: Int, mailbox: Int, hasMore: Bool, stoppedEarly: Bool) -> String {
+    if stoppedEarly {
+        return "Scanned \(scanned) messages, then Gmail asked us to slow down. Wait a minute and Scan again."
+    }
+    if hasMore {
+        return "Reviewed \(scanned) of \(mailbox) mailbox messages. Scan again for older mail."
+    }
+    return "Reviewed \(scanned) of \(mailbox) mailbox messages. Caught up (Sent, Drafts, and Trash skipped)."
+}

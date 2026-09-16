@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.12 — 2026-09-16
+
+- Scan covers all-age inbox, Updates, and Forums, then walks the rest of the mailbox except Sent, Drafts, Trash, and Chat. The header shows scanned vs mailbox total; Scan again loads older mail.
+
 ## 0.1.11 — 2026-09-16
 
 - Connect stores Gmail tokens in Application Support so unsigned `swift run` can finish sign-in. The data-protection keychain add was failing and looked like a Gmail decode error.

@@ -35,7 +35,6 @@ struct ReviewView: View {
             if let snapshot = session.snapshot {
                 MailboxStatsBar(
                     snapshot: snapshot,
-                    visibleCount: session.visibleItems.count,
                     scannedCount: session.items.count
                 )
                 Divider()

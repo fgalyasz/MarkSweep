@@ -88,7 +88,6 @@ struct StorageMetric: View {
 
 struct MailboxStatsBar: View {
     let snapshot: MailboxSnapshot
-    let visibleCount: Int
     let scannedCount: Int
 
     var body: some View {
@@ -96,7 +95,7 @@ struct MailboxStatsBar: View {
             StatsMetric(
                 title: "Mailbox",
                 value: mailboxCountLine(snapshot),
-                detail: showingCountLine(visible: visibleCount, total: scannedCount)
+                detail: scannedOfMailboxLine(scanned: scannedCount, mailbox: snapshot.messagesTotal)
             )
             StorageMetric(quota: snapshot.quota)
             StatsMetric(title: "This session", value: mailboxCleanedSessionLine(snapshot))
