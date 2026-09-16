@@ -4,6 +4,8 @@ MarkSweep is a macOS app that marks junk and reclaimable Gmail, then sweeps it t
 
 Later releases will add iCloud Photos and Google Photos through the same account picker. Google Photos cannot bulk-delete the existing library through the official API.
 
+Product board: [MarkSweep project #9](https://github.com/users/fgalyasz/projects/9). Planned work lives in `_bmad-output/planning-artifacts/roadmap-marksweep-next/brief.md`.
+
 ## Requirements
 
 - macOS 13 Ventura or later
