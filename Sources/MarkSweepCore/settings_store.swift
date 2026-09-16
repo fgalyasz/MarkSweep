@@ -6,6 +6,7 @@ enum SettingsKey: String, CodingKey {
     case perQueryCap
     case sweptCount
     case sweptBytes
+    case keepRules
 }
 
 public let markSweepVersion = "0.1.0"
@@ -16,13 +17,15 @@ public struct MarkSweepSettings: Equatable {
     public var perQueryCap: Int
     public var sweptCount: Int
     public var sweptBytes: Int
+    public var keepRules: [KeepRule]
 
     public static let `default` = MarkSweepSettings(
         lastEmail: nil,
         largeBytesThreshold: 5_000_000,
         perQueryCap: 40,
         sweptCount: 0,
-        sweptBytes: 0
+        sweptBytes: 0,
+        keepRules: []
     )
 
     public init(
@@ -30,13 +33,15 @@ public struct MarkSweepSettings: Equatable {
         largeBytesThreshold: Int,
         perQueryCap: Int,
         sweptCount: Int = 0,
-        sweptBytes: Int = 0
+        sweptBytes: Int = 0,
+        keepRules: [KeepRule] = []
     ) {
         self.lastEmail = lastEmail
         self.largeBytesThreshold = largeBytesThreshold
         self.perQueryCap = perQueryCap
         self.sweptCount = sweptCount
         self.sweptBytes = sweptBytes
+        self.keepRules = keepRules
     }
 }
 
@@ -57,7 +62,8 @@ func decodeSettings(_ decoder: Decoder) throws -> MarkSweepSettings {
         largeBytesThreshold: try c.decodeIfPresent(Int.self, forKey: .largeBytesThreshold) ?? 5_000_000,
         perQueryCap: try c.decodeIfPresent(Int.self, forKey: .perQueryCap) ?? 40,
         sweptCount: try c.decodeIfPresent(Int.self, forKey: .sweptCount) ?? 0,
-        sweptBytes: try c.decodeIfPresent(Int.self, forKey: .sweptBytes) ?? 0
+        sweptBytes: try c.decodeIfPresent(Int.self, forKey: .sweptBytes) ?? 0,
+        keepRules: try c.decodeIfPresent([KeepRule].self, forKey: .keepRules) ?? []
     )
 }
 
@@ -68,6 +74,7 @@ func encodeSettings(_ settings: MarkSweepSettings, encoder: Encoder) throws {
     try c.encode(settings.perQueryCap, forKey: .perQueryCap)
     try c.encode(settings.sweptCount, forKey: .sweptCount)
     try c.encode(settings.sweptBytes, forKey: .sweptBytes)
+    try c.encode(settings.keepRules, forKey: .keepRules)
 }
 
 public func defaultSettingsURL() -> URL {
@@ -90,7 +97,8 @@ public func migrateSettings(_ settings: MarkSweepSettings) -> MarkSweepSettings 
         largeBytesThreshold: settings.largeBytesThreshold,
         perQueryCap: MarkSweepSettings.default.perQueryCap,
         sweptCount: settings.sweptCount,
-        sweptBytes: settings.sweptBytes
+        sweptBytes: settings.sweptBytes,
+        keepRules: settings.keepRules
     )
 }
 
@@ -109,7 +117,8 @@ public func settingsWithEmail(_ settings: MarkSweepSettings, email: String?) -> 
         largeBytesThreshold: settings.largeBytesThreshold,
         perQueryCap: settings.perQueryCap,
         sweptCount: settings.sweptCount,
-        sweptBytes: settings.sweptBytes
+        sweptBytes: settings.sweptBytes,
+        keepRules: settings.keepRules
     )
 }
 
@@ -119,6 +128,18 @@ public func settingsByAddingSweep(_ settings: MarkSweepSettings, count: Int, byt
         largeBytesThreshold: settings.largeBytesThreshold,
         perQueryCap: settings.perQueryCap,
         sweptCount: settings.sweptCount + count,
-        sweptBytes: settings.sweptBytes + bytes
+        sweptBytes: settings.sweptBytes + bytes,
+        keepRules: settings.keepRules
+    )
+}
+
+public func settingsByReplacingKeepRules(_ settings: MarkSweepSettings, rules: [KeepRule]) -> MarkSweepSettings {
+    MarkSweepSettings(
+        lastEmail: settings.lastEmail,
+        largeBytesThreshold: settings.largeBytesThreshold,
+        perQueryCap: settings.perQueryCap,
+        sweptCount: settings.sweptCount,
+        sweptBytes: settings.sweptBytes,
+        keepRules: rules
     )
 }

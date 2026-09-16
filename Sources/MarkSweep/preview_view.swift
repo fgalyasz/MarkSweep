@@ -15,6 +15,10 @@ struct PreviewPane: View {
                         Text(item.date.formatted())
                         Text("\(verdictLabel(item.verdict)) · \(item.reason)")
                             .foregroundStyle(.secondary)
+                        if item.isProtected {
+                            Text("Protected — never swept.")
+                                .foregroundStyle(.secondary)
+                        }
                         Divider()
                         Text(item.preview.isEmpty ? "No preview." : item.preview)
                             .textSelection(.enabled)

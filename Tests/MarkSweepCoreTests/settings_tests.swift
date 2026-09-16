@@ -40,6 +40,7 @@ final class SettingsTests: XCTestCase {
         let old = MarkSweepSettings(lastEmail: "a@b.com", largeBytesThreshold: 9, perQueryCap: 500)
         XCTAssertEqual(migrateSettings(old).perQueryCap, 40)
         XCTAssertEqual(migrateSettings(old).lastEmail, "a@b.com")
+        XCTAssertEqual(migrateSettings(old).keepRules, [])
     }
 
     func testMigrateLeavesCustomCap() {

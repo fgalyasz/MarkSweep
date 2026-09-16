@@ -7,19 +7,31 @@ func sampleItem(
     verdict: MessageVerdictKind = .spamLike,
     reason: String = "Gmail spam",
     size: Int = 10,
-    spamFolder: Bool = false
+    spamFolder: Bool = false,
+    isProtected: Bool = false,
+    from: String = "s@x.com",
+    to: String = "",
+    subject: String? = nil
 ) -> ReviewItem {
     ReviewItem(
         id: id,
         selected: selected,
         verdict: verdict,
         reason: reason,
-        subject: "S\(id)",
-        sender: "s@x.com",
         date: Date(timeIntervalSince1970: 0),
         sizeBytes: size,
         preview: "p",
-        isSpamFolder: spamFolder
+        isSpamFolder: spamFolder,
+        isProtected: isProtected,
+        baseVerdict: verdict,
+        baseReason: reason,
+        matchFields: MessageMatchFields(
+            from: from,
+            to: to,
+            cc: "",
+            subject: subject ?? "S\(id)",
+            body: "p"
+        )
     )
 }
 

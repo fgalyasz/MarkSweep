@@ -3,15 +3,20 @@ import MarkSweepCore
 
 struct ReviewView: View {
     @EnvironmentObject var session: AppSession
+    @State private var showKeepRules = false
 
     var body: some View {
         NavigationSplitView {
-            FilterSidebar()
+            FilterSidebar(showKeepRules: $showKeepRules)
         } content: {
             messageColumn
         } detail: {
             PreviewPane(item: session.selectedItem)
                 .navigationSplitViewColumnWidth(min: 220, ideal: 260, max: 340)
+        }
+        .sheet(isPresented: $showKeepRules) {
+            KeepRulesView()
+                .environmentObject(session)
         }
         .toolbar { toolbarContent }
         .safeAreaInset(edge: .bottom) { SweepBar() }
@@ -67,6 +72,7 @@ struct ReviewView: View {
 
 struct FilterSidebar: View {
     @EnvironmentObject var session: AppSession
+    @Binding var showKeepRules: Bool
 
     var body: some View {
         VStack(spacing: 0) {
@@ -86,6 +92,9 @@ struct FilterSidebar: View {
             Button("Disconnect", action: session.disconnect)
                 .buttonStyle(.plain)
                 .foregroundStyle(.tint)
+            Button("Keep rules (\(session.settings.keepRules.count))") {
+                showKeepRules = true
+            }
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)

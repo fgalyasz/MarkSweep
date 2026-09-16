@@ -98,6 +98,8 @@ func featuresFromJSON(_ json: GmailMessageJSON, now: Date) -> MessageFeatures {
         snippet: json.snippet ?? "",
         sizeEstimate: json.sizeEstimate ?? 0,
         from: headerValue(headers, name: "From") ?? "",
+        to: headerValue(headers, name: "To") ?? "",
+        cc: headerValue(headers, name: "Cc") ?? "",
         subject: headerValue(headers, name: "Subject") ?? "",
         date: parseGmailDate(headerValue(headers, name: "Date"), now: now),
         listUnsubscribe: headerValue(headers, name: "List-Unsubscribe"),

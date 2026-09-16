@@ -13,7 +13,7 @@ public struct SweepPlan: Equatable {
 }
 
 public func sweepPlan(from items: [ReviewItem]) -> SweepPlan {
-    let chosen = selectedItems(items)
+    let chosen = sweepableItems(items)
     let bytes = chosen.reduce(0) { $0 + $1.sizeBytes }
     return SweepPlan(ids: chosen.map(\.id), count: chosen.count, bytes: bytes)
 }

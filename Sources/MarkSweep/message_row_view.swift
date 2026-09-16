@@ -11,6 +11,7 @@ struct MessageRowView: View {
             Toggle("", isOn: Binding(get: { isOn }, set: { _ in onToggle() }))
                 .labelsHidden()
                 .toggleStyle(.checkbox)
+                .disabled(item.isProtected)
             VStack(alignment: .leading, spacing: 4) {
                 Text(item.subject.isEmpty ? "(no subject)" : item.subject)
                     .font(.headline)

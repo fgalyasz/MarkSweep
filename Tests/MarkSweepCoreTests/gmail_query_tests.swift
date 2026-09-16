@@ -25,6 +25,8 @@ final class GmailQueryTests: XCTestCase {
         let url = gmailMessageURL(id: "abc", format: .metadata)
         XCTAssertTrue(url.absoluteString.contains("format=metadata"))
         XCTAssertTrue(url.absoluteString.contains("metadataHeaders=From"))
+        XCTAssertTrue(url.absoluteString.contains("metadataHeaders=To"))
+        XCTAssertTrue(url.absoluteString.contains("metadataHeaders=Cc"))
     }
 
     func testFullMessageURL() {
@@ -110,12 +112,15 @@ final class GmailQueryTests: XCTestCase {
         let raw = """
         {"id":"m1","labelIds":["INBOX"],"snippet":"sn","sizeEstimate":9,"payload":{\
         "mimeType":"text/plain","headers":[{"name":"From","value":"Ann <a@b.com>"},\
+        {"name":"To","value":"you@x.com"},{"name":"Cc","value":"c@x.com"},\
         {"name":"Subject","value":"Hi"},{"name":"Date","value":"Tue, 01 Jan 1970 00:00:01 +0000"},\
         {"name":"List-Unsubscribe","value":"<mailto:x>"}],"body":{"data":"\(body)"}}}
         """
         let features = try parseGmailMessage(data: Data(raw.utf8), now: Date(timeIntervalSince1970: 99))
         XCTAssertEqual(features.id, "m1")
         XCTAssertEqual(features.from, "Ann <a@b.com>")
+        XCTAssertEqual(features.to, "you@x.com")
+        XCTAssertEqual(features.cc, "c@x.com")
         XCTAssertEqual(features.subject, "Hi")
         XCTAssertEqual(features.listUnsubscribe, "<mailto:x>")
         XCTAssertEqual(features.bodyText, "hello world")

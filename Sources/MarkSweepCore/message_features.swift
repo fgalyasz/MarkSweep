@@ -6,6 +6,8 @@ public struct MessageFeatures: Equatable {
     public let snippet: String
     public let sizeEstimate: Int
     public let from: String
+    public let to: String
+    public let cc: String
     public let subject: String
     public let date: Date
     public let listUnsubscribe: String?
@@ -17,6 +19,8 @@ public struct MessageFeatures: Equatable {
         snippet: String,
         sizeEstimate: Int,
         from: String,
+        to: String,
+        cc: String,
         subject: String,
         date: Date,
         listUnsubscribe: String?,
@@ -27,6 +31,8 @@ public struct MessageFeatures: Equatable {
         self.snippet = snippet
         self.sizeEstimate = sizeEstimate
         self.from = from
+        self.to = to
+        self.cc = cc
         self.subject = subject
         self.date = date
         self.listUnsubscribe = listUnsubscribe

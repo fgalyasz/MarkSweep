@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.7 — 2026-09-16
+
+- Keep rules: From, To, Cc, Subject, Body — exact or contains. Matching mail is never swept. Edit rules in the app.
+
 ## 0.1.6 — 2026-09-16
 
 - Stats header keeps full digits at the default window size. Metrics wrap instead of showing ellipsis; storage shows used bytes as the headline.

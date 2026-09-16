@@ -98,7 +98,7 @@ final class AppSession: ObservableObject {
                 largeBytes: self.settings.largeBytesThreshold,
                 sleeper: TaskSleeper()
             )
-            self.items = outcome.items
+            self.items = applyKeepRulesToItems(outcome.items, rules: self.settings.keepRules)
             self.selectedID = self.visibleItems.first?.id
             self.statusText = scanStatusText(outcome)
             await self.refreshMailboxSnapshot()
@@ -214,6 +214,26 @@ final class AppSession: ObservableObject {
             errorText = (error as? MarkSweepError).map(errorMessage) ?? error.localizedDescription
         }
         isBusy = false
+    }
+
+    func addKeepRule() {
+        replaceKeepRules(settings.keepRules + [makeKeepRule()])
+    }
+
+    func removeKeepRules(at offsets: IndexSet) {
+        var rules = settings.keepRules
+        rules.remove(atOffsets: offsets)
+        replaceKeepRules(rules)
+    }
+
+    func updateKeepRule(_ rule: KeepRule) {
+        replaceKeepRules(settings.keepRules.map { $0.id == rule.id ? rule : $0 })
+    }
+
+    func replaceKeepRules(_ rules: [KeepRule]) {
+        settings = settingsByReplacingKeepRules(settings, rules: rules)
+        try? saveSettings(settings, to: settingsURL)
+        items = applyKeepRulesToItems(items, rules: rules)
     }
 }
 

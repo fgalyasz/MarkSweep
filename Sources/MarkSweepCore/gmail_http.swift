@@ -106,7 +106,7 @@ public func gmailMessageURL(id: String, format: GmailFormat) -> URL {
 }
 
 public func metadataHeaderItems() -> [URLQueryItem] {
-    ["From", "Subject", "Date", "List-Unsubscribe"].map {
+    ["From", "To", "Cc", "Subject", "Date", "List-Unsubscribe"].map {
         URLQueryItem(name: "metadataHeaders", value: $0)
     }
 }
