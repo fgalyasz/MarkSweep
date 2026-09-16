@@ -85,7 +85,7 @@ public func defaultSettingsURL() -> URL {
 public func loadSettings(from url: URL) -> MarkSweepSettings {
     guard let data = try? Data(contentsOf: url) else { return .default }
     let loaded = (try? JSONDecoder().decode(MarkSweepSettings.self, from: data)) ?? .default
-    let migrated = migrateSettings(loaded)
+    let migrated = uniquedKeepSettings(migrateSettings(loaded))
     if migrated != loaded { try? saveSettings(migrated, to: url) }
     return migrated
 }

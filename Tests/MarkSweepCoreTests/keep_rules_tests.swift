@@ -118,4 +118,48 @@ final class KeepRulesTests: XCTestCase {
         XCTAssertEqual(fields.to, "t@x.com")
         XCTAssertTrue(fields.body.contains("Body"))
     }
+
+    func testInsertRejectsDuplicate() {
+        let rule = KeepRule(id: "1", field: .from, match: .exact, value: "A@B.com")
+        let copy = KeepRule(id: "2", field: .from, match: .exact, value: " a@b.com ")
+        XCTAssertEqual(insertingKeepRule([rule], copy), [rule])
+        XCTAssertEqual(insertingKeepRule([], rule).count, 1)
+    }
+
+    func testUpdateRejectsDuplicate() {
+        let a = KeepRule(id: "1", field: .from, match: .exact, value: "a@b.com")
+        let b = KeepRule(id: "2", field: .subject, match: .contains, value: "x")
+        let clash = KeepRule(id: "2", field: .from, match: .exact, value: "a@b.com")
+        XCTAssertEqual(updatedKeepRules([a, b], replacing: clash), [a, b])
+    }
+
+    func testRemoveAndUnique() {
+        let a = KeepRule(id: "1", field: .from, match: .exact, value: "a@b.com")
+        let b = KeepRule(id: "2", field: .from, match: .exact, value: "A@B.com")
+        XCTAssertEqual(removingKeepRule([a, b], id: "1"), [b])
+        XCTAssertEqual(uniqueKeepRules([a, b]).map(\.id), ["1"])
+    }
+
+    func testSuggestionsFromMessage() {
+        let fields = MessageMatchFields(
+            from: "Ann <a@b.com>",
+            to: "you@x.com",
+            cc: "",
+            subject: "Hello",
+            body: "Line one\nLine two"
+        )
+        let titles = keepRuleSuggestions(from: fields).map(keepSuggestionTitle)
+        XCTAssertTrue(titles.contains("From: a@b.com"))
+        XCTAssertTrue(titles.contains("To: you@x.com"))
+        XCTAssertTrue(titles.contains("Subject: Hello"))
+        XCTAssertEqual(keepRuleSuggestion(field: .body, fields: fields)?.match, .contains)
+        XCTAssertNil(keepRuleSuggestion(field: .cc, fields: fields))
+    }
+
+    func testUniquedSettings() {
+        let a = KeepRule(id: "1", field: .from, match: .contains, value: "x")
+        let b = KeepRule(id: "2", field: .from, match: .contains, value: "x")
+        let settings = settingsByReplacingKeepRules(.default, rules: [a, b])
+        XCTAssertEqual(uniquedKeepSettings(settings).keepRules.map(\.id), ["1"])
+    }
 }

@@ -217,7 +217,24 @@ final class AppSession: ObservableObject {
     }
 
     func addKeepRule() {
-        replaceKeepRules(settings.keepRules + [makeKeepRule()])
+        insertKeepRule(makeKeepRule())
+    }
+
+    func addKeepRule(from suggestion: KeepRuleSuggestion) {
+        insertKeepRule(makeKeepRule(from: suggestion))
+    }
+
+    func insertKeepRule(_ rule: KeepRule) {
+        let next = insertingKeepRule(settings.keepRules, rule)
+        if next.count == settings.keepRules.count {
+            statusText = "That keep rule already exists."
+            return
+        }
+        replaceKeepRules(next)
+    }
+
+    func removeKeepRule(id: String) {
+        replaceKeepRules(removingKeepRule(settings.keepRules, id: id))
     }
 
     func removeKeepRules(at offsets: IndexSet) {
@@ -227,7 +244,9 @@ final class AppSession: ObservableObject {
     }
 
     func updateKeepRule(_ rule: KeepRule) {
-        replaceKeepRules(settings.keepRules.map { $0.id == rule.id ? rule : $0 })
+        let next = updatedKeepRules(settings.keepRules, replacing: rule)
+        if next == settings.keepRules { return }
+        replaceKeepRules(next)
     }
 
     func replaceKeepRules(_ rules: [KeepRule]) {

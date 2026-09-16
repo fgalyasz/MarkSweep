@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.8 — 2026-09-16
+
+- Keep rules: delete button, right-click a message to add From/To/Subject, and no duplicate rows.
+
 ## 0.1.7 — 2026-09-16
 
 - Keep rules: From, To, Cc, Subject, Body — exact or contains. Matching mail is never swept. Edit rules in the app.

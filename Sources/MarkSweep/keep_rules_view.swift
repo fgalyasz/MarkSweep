@@ -11,7 +11,11 @@ struct KeepRulesView: View {
                 .foregroundStyle(.secondary)
             List {
                 ForEach(session.settings.keepRules) { rule in
-                    KeepRuleEditor(rule: rule, onChange: session.updateKeepRule)
+                    KeepRuleEditor(
+                        rule: rule,
+                        onChange: session.updateKeepRule,
+                        onDelete: { session.removeKeepRule(id: rule.id) }
+                    )
                 }
                 .onDelete(perform: session.removeKeepRules)
             }
@@ -34,6 +38,7 @@ struct KeepRulesView: View {
 struct KeepRuleEditor: View {
     let rule: KeepRule
     let onChange: (KeepRule) -> Void
+    let onDelete: () -> Void
 
     var body: some View {
         HStack(spacing: 8) {
@@ -48,6 +53,11 @@ struct KeepRuleEditor: View {
             .labelsHidden()
             .frame(width: 110)
             TextField("Value", text: valueBind)
+            Button(role: .destructive, action: onDelete) {
+                Image(systemName: "trash")
+            }
+            .buttonStyle(.borderless)
+            .help("Delete rule")
         }
     }
 

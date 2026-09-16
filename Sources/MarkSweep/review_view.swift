@@ -51,6 +51,7 @@ struct ReviewView: View {
                 session.toggle(id: item.id)
             }
             .tag(item.id)
+            .contextMenu { KeepRuleContextMenu(item: item) }
         }
         .frame(minWidth: 320)
     }
@@ -125,6 +126,31 @@ struct FilterCountRow: View {
                 .monospacedDigit()
         }
         .tag(filter)
+    }
+}
+
+struct KeepRuleContextMenu: View {
+    @EnvironmentObject var session: AppSession
+    let item: ReviewItem
+
+    var body: some View {
+        Menu("Keep") {
+            ForEach(keepRuleSuggestions(from: item.matchFields)) { suggestion in
+                keepSuggestionButton(suggestion)
+            }
+        }
+    }
+
+    func keepSuggestionButton(_ suggestion: KeepRuleSuggestion) -> some View {
+        Button(keepSuggestionTitle(suggestion)) {
+            session.addKeepRule(from: suggestion)
+        }
+        .disabled(keepRuleExists(
+            session.settings.keepRules,
+            field: suggestion.field,
+            match: suggestion.match,
+            value: suggestion.value
+        ))
     }
 }
 
