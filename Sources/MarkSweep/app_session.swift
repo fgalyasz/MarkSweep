@@ -25,7 +25,7 @@ final class AppSession: ObservableObject {
     let catcher = LoopbackOAuthCatcher()
 
     init(
-        tokenStore: TokenStoring = KeychainTokenStore(),
+        tokenStore: TokenStoring = FileTokenStore(),
         transport: HTTPTransporting = URLSessionTransport(),
         settingsURL: URL = defaultSettingsURL()
     ) {
@@ -282,6 +282,8 @@ func errorMessage(_ error: MarkSweepError) -> String {
         return httpStatusText(status, detail: detail)
     case .decode:
         return "Could not read a Gmail or OAuth response."
+    case .tokenSaveFailed:
+        return "Could not save Gmail sign-in in Application Support/MarkSweep."
     case .notConnected:
         return "Connect Gmail first."
     }

@@ -9,4 +9,5 @@ public enum MarkSweepError: Error, Equatable {
     case missingClientID
     case tokenMissing
     case listenFailed
+    case tokenSaveFailed
 }

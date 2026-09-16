@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.11 — 2026-09-16
+
+- Connect stores Gmail tokens in Application Support so unsigned `swift run` can finish sign-in. The data-protection keychain add was failing and looked like a Gmail decode error.
+
 ## 0.1.10 — 2026-09-16
 
 - Keep rules can keep matching mail for a set number of days. Empty Days means forever. After the window, Scan moves those messages to Trash.
