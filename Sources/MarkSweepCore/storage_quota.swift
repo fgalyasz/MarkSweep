@@ -25,6 +25,23 @@ public func storageRemaining(_ quota: StorageQuota) -> Int64? {
     return max(0, limit - quota.usage)
 }
 
+public func quotaFillRatio(_ quota: StorageQuota) -> Double? {
+    guard let limit = quota.limit, limit > 0 else { return nil }
+    let raw = Double(quota.usage) / Double(limit)
+    return min(1, max(0, raw))
+}
+
+public func storagePairLine(_ quota: StorageQuota) -> String {
+    let used = formatBytes64(quota.usage)
+    guard let limit = quota.limit else { return "\(used) used" }
+    return "\(used) / \(formatBytes64(limit))"
+}
+
+public func storageFreeLine(_ quota: StorageQuota) -> String? {
+    guard let left = storageRemaining(quota) else { return nil }
+    return "\(formatBytes64(left)) free"
+}
+
 struct DriveAboutJSON: Decodable {
     let storageQuota: DriveQuotaJSON?
 }

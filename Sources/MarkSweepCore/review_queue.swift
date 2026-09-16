@@ -83,6 +83,10 @@ public func filteredItems(_ items: [ReviewItem], filter: ReviewFilter) -> [Revie
     items.filter { itemMatchesFilter($0, filter: filter) }
 }
 
+public func matchingCount(_ items: [ReviewItem], filter: ReviewFilter) -> Int {
+    filteredItems(items, filter: filter).count
+}
+
 public func toggleSelection(_ items: [ReviewItem], id: String) -> [ReviewItem] {
     items.map { item in
         if item.id != id { return item }

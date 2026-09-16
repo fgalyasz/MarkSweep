@@ -26,20 +26,25 @@ public struct MailboxSnapshot: Equatable {
 }
 
 public func mailboxCountLine(_ snapshot: MailboxSnapshot) -> String {
-    "\(snapshot.messagesTotal) messages in mailbox"
+    formatCount(snapshot.messagesTotal)
+}
+
+public func formatCount(_ n: Int) -> String {
+    n.formatted()
 }
 
 public func mailboxQuotaLine(_ snapshot: MailboxSnapshot) -> String {
-    guard let quota = snapshot.quota else { return "Google storage unavailable" }
+    guard let quota = snapshot.quota else { return "Unavailable" }
     return quotaUsageLine(quota)
 }
 
 public func quotaUsageLine(_ quota: StorageQuota) -> String {
-    let used = formatBytes64(quota.usage)
-    guard let limit = quota.limit, let left = storageRemaining(quota) else {
-        return "\(used) used (no plan limit reported)"
-    }
-    return "\(used) of \(formatBytes64(limit)) used · \(formatBytes64(left)) free"
+    guard let free = storageFreeLine(quota) else { return storagePairLine(quota) }
+    return "\(storagePairLine(quota)) · \(free)"
+}
+
+public func cleanedPairLine(count: Int, bytes: Int) -> String {
+    "\(formatCount(count)) · \(formatBytes(bytes))"
 }
 
 public func mailboxQuotaNote() -> String {
@@ -47,11 +52,11 @@ public func mailboxQuotaNote() -> String {
 }
 
 public func mailboxCleanedSessionLine(_ snapshot: MailboxSnapshot) -> String {
-    "This session: \(snapshot.sessionSweptCount) · \(formatBytes(snapshot.sessionSweptBytes))"
+    cleanedPairLine(count: snapshot.sessionSweptCount, bytes: snapshot.sessionSweptBytes)
 }
 
 public func mailboxCleanedLifetimeLine(_ snapshot: MailboxSnapshot) -> String {
-    "With MarkSweep: \(snapshot.lifetimeSweptCount) · \(formatBytes(snapshot.lifetimeSweptBytes))"
+    cleanedPairLine(count: snapshot.lifetimeSweptCount, bytes: snapshot.lifetimeSweptBytes)
 }
 
 public func showingCountLine(visible: Int, total: Int) -> String {

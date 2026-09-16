@@ -30,7 +30,7 @@ final class ReviewQueueTests: XCTestCase {
             sampleItem(id: "2", verdict: .large),
             sampleItem(id: "3", spamFolder: true)
         ]
-        XCTAssertEqual(filteredItems(items, filter: .all).count, 3)
+        XCTAssertEqual(matchingCount(items, filter: .all), 3)
         XCTAssertEqual(filteredItems(items, filter: .suspect).map(\.id), ["1"])
         XCTAssertEqual(filteredItems(items, filter: .large).map(\.id), ["2"])
         XCTAssertEqual(filteredItems(items, filter: .spamFolder).map(\.id), ["3"])
@@ -61,6 +61,13 @@ final class ReviewQueueTests: XCTestCase {
         XCTAssertTrue(item.selected)
         XCTAssertTrue(item.isSpamFolder)
         XCTAssertEqual(item.subject, "Win")
+    }
+
+    func testMatchingCount() {
+        let items = [sampleItem(id: "1", verdict: .suspect), sampleItem(id: "2", verdict: .large)]
+        XCTAssertEqual(matchingCount(items, filter: .suspect), 1)
+        XCTAssertEqual(matchingCount(items, filter: .all), 2)
+        XCTAssertEqual(matchingCount([], filter: .all), 0)
     }
 
     func testFilterTitles() {

@@ -25,7 +25,8 @@ final class MailboxStatsTests: XCTestCase {
         let quota = try parseDriveQuota(data: Data("{\"storageQuota\":{\"usage\":\"9\"}}".utf8))
         XCTAssertNil(quota.limit)
         XCTAssertNil(storageRemaining(quota))
-        XCTAssertTrue(quotaUsageLine(quota).contains("no plan limit"))
+        XCTAssertNil(quotaFillRatio(quota))
+        XCTAssertTrue(quotaUsageLine(quota).contains("used"))
     }
 
     func testParseDriveQuotaBad() {
@@ -41,7 +42,7 @@ final class MailboxStatsTests: XCTestCase {
             lifetimeSweptCount: 2,
             lifetimeSweptBytes: 20
         )
-        XCTAssertEqual(mailboxCountLine(snapshot), "3 messages in mailbox")
+        XCTAssertEqual(mailboxCountLine(snapshot), "3")
         XCTAssertTrue(mailboxQuotaLine(snapshot).contains("free"))
         XCTAssertTrue(mailboxCleanedSessionLine(snapshot).contains("1"))
         XCTAssertTrue(mailboxCleanedLifetimeLine(snapshot).contains("2"))
@@ -56,7 +57,7 @@ final class MailboxStatsTests: XCTestCase {
             lifetimeSweptCount: 0,
             lifetimeSweptBytes: 0
         )
-        XCTAssertEqual(mailboxQuotaLine(snapshot), "Google storage unavailable")
+        XCTAssertEqual(mailboxQuotaLine(snapshot), "Unavailable")
     }
 
     func testShowingCount() {
@@ -96,5 +97,20 @@ final class MailboxStatsTests: XCTestCase {
         let quota = try await client.storageQuota()
         XCTAssertEqual(quota.limit, 20)
         XCTAssertEqual(storageRemaining(quota), 15)
+    }
+
+    func testQuotaFillRatio() {
+        let limited = StorageQuota(usage: 40, limit: 150)
+        XCTAssertEqual(quotaFillRatio(limited)!, 40.0 / 150.0, accuracy: 0.0001)
+        XCTAssertEqual(quotaFillRatio(StorageQuota(usage: 200, limit: 100)), 1)
+        XCTAssertNil(quotaFillRatio(StorageQuota(usage: 9, limit: nil)))
+        XCTAssertNil(quotaFillRatio(StorageQuota(usage: 1, limit: 0)))
+    }
+
+    func testStoragePairAndFree() {
+        let quota = StorageQuota(usage: 40, limit: 150)
+        XCTAssertTrue(storagePairLine(quota).contains("/"))
+        XCTAssertTrue(storageFreeLine(quota)!.contains("free"))
+        XCTAssertNil(storageFreeLine(StorageQuota(usage: 9, limit: nil)))
     }
 }

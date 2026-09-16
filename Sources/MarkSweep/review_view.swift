@@ -6,14 +6,14 @@ struct ReviewView: View {
 
     var body: some View {
         NavigationSplitView {
-            filterList
+            FilterSidebar()
         } content: {
-            messageList
+            messageColumn
         } detail: {
             PreviewPane(item: session.selectedItem)
         }
         .toolbar { toolbarContent }
-        .safeAreaInset(edge: .bottom) { sweepBar }
+        .safeAreaInset(edge: .bottom) { SweepBar() }
         .alert("Sweep to Trash?", isPresented: $session.confirmSweep) {
             Button("Cancel", role: .cancel) { session.confirmSweep = false }
             Button("Move to Trash", role: .destructive) {
@@ -24,33 +24,18 @@ struct ReviewView: View {
         }
     }
 
-    var filterList: some View {
-        List {
-            Section("Account") {
-                Text(session.account?.email ?? "")
-                Button("Disconnect", action: session.disconnect)
-            }
+    var messageColumn: some View {
+        VStack(spacing: 0) {
             if let snapshot = session.snapshot {
-                Section("Mailbox") {
-                    Text(mailboxCountLine(snapshot))
-                    Text(mailboxQuotaLine(snapshot))
-                    Text(mailboxQuotaNote())
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    Text(mailboxCleanedSessionLine(snapshot))
-                    Text(mailboxCleanedLifetimeLine(snapshot))
-                }
+                MailboxStatsBar(
+                    snapshot: snapshot,
+                    visibleCount: session.visibleItems.count,
+                    scannedCount: session.items.count
+                )
+                Divider()
             }
-            Section("Filter") {
-                Text(showingCountLine(visible: session.visibleItems.count, total: session.items.count))
-                    .foregroundStyle(.secondary)
-                ForEach(ReviewFilter.allCases) { filter in
-                    Button(reviewFilterTitle(filter)) { session.filter = filter }
-                        .foregroundStyle(session.filter == filter ? Color.accentColor : Color.primary)
-                }
-            }
+            messageList
         }
-        .frame(minWidth: 180)
     }
 
     var messageList: some View {
@@ -61,23 +46,6 @@ struct ReviewView: View {
             .tag(item.id)
         }
         .frame(minWidth: 320)
-    }
-
-    var sweepBar: some View {
-        HStack {
-            Text(session.statusText ?? "\(session.items.count) scanned")
-            Spacer()
-            if let error = session.errorText {
-                Text(error).foregroundStyle(.red)
-            }
-            if session.isBusy { ProgressView() }
-            Button("Sweep \(session.plan.count) · \(formatBytes(session.plan.bytes))") {
-                session.confirmSweep = session.plan.count > 0
-            }
-            .disabled(session.isBusy || session.plan.count == 0)
-        }
-        .padding()
-        .background(.bar)
     }
 
     @ToolbarContentBuilder
@@ -92,5 +60,90 @@ struct ReviewView: View {
         ToolbarItem(placement: .automatic) {
             Button("Clear visible") { session.selectVisible(false) }
         }
+    }
+}
+
+struct FilterSidebar: View {
+    @EnvironmentObject var session: AppSession
+
+    var body: some View {
+        VStack(spacing: 0) {
+            accountHeader
+            Divider()
+            filterList
+        }
+        .navigationSplitViewColumnWidth(min: 200, ideal: 228, max: 280)
+    }
+
+    var accountHeader: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(session.account?.email ?? "")
+                .font(.headline)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Button("Disconnect", action: session.disconnect)
+                .buttonStyle(.plain)
+                .foregroundStyle(.tint)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    var filterList: some View {
+        List(selection: $session.filter) {
+            Section("Filter") {
+                ForEach(ReviewFilter.allCases) { filter in
+                    FilterCountRow(filter: filter, count: matchingCount(session.items, filter: filter))
+                }
+            }
+        }
+        .listStyle(.sidebar)
+    }
+}
+
+struct FilterCountRow: View {
+    let filter: ReviewFilter
+    let count: Int
+
+    var body: some View {
+        HStack {
+            Text(reviewFilterTitle(filter))
+            Spacer()
+            Text(formatCount(count))
+                .foregroundStyle(.secondary)
+                .monospacedDigit()
+        }
+        .tag(filter)
+    }
+}
+
+struct SweepBar: View {
+    @EnvironmentObject var session: AppSession
+
+    var body: some View {
+        HStack(spacing: 12) {
+            Text(session.statusText ?? "\(session.items.count) scanned")
+                .foregroundStyle(.secondary)
+            Spacer()
+            errorLabel
+            if session.isBusy { ProgressView().controlSize(.small) }
+            sweepButton
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(.bar)
+    }
+
+    @ViewBuilder var errorLabel: some View {
+        if let error = session.errorText {
+            Text(error).foregroundStyle(.red).lineLimit(1)
+        }
+    }
+
+    var sweepButton: some View {
+        Button("Sweep \(session.plan.count) · \(formatBytes(session.plan.bytes))") {
+            session.confirmSweep = session.plan.count > 0
+        }
+        .disabled(session.isBusy || session.plan.count == 0)
     }
 }

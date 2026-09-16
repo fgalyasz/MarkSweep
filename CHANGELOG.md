@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.5 — 2026-09-16
+
+- Review chrome is Mail-like: filters in the sidebar with counts, mailbox/storage/cleaned in a header above the list.
+
 ## 0.1.4 — 2026-09-16
 
 - Sidebar shows mailbox message count, Google storage used vs plan, and cleaned totals. Showing A of B so a filter is not mistaken for the whole scan.
