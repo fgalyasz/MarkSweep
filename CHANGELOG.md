@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4 — 2026-09-16
+
+- Sidebar shows mailbox message count, Google storage used vs plan, and cleaned totals. Showing A of B so a filter is not mistaken for the whole scan.
+- Connect also asks for Drive metadata (shared Gmail/Drive/Photos quota). Disconnect and Connect again after enabling the Drive API.
+
 ## 0.1.3 — 2026-09-15
 
 - Scan paces Gmail calls and keeps partial results when the per-minute quota is hit. Default cap is 40 per query.

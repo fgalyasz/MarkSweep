@@ -14,6 +14,9 @@ final class AppSession: ObservableObject {
     @Published var isBusy = false
     @Published var confirmSweep = false
     @Published var comingSoonKind: AccountKind?
+    @Published var snapshot: MailboxSnapshot?
+    @Published var sessionSweptCount = 0
+    @Published var sessionSweptBytes = 0
 
     let tokenStore: TokenStoring
     let transport: HTTPTransporting
@@ -47,6 +50,7 @@ final class AppSession: ObservableObject {
         guard let email = settings.lastEmail, email.isEmpty == false else { return }
         guard (try? tokenStore.load()) != nil else { return }
         account = ConnectedAccount(kind: .gmail, email: email)
+        Task { await refreshMailboxSnapshot() }
     }
 
     func choose(_ kind: AccountKind) {
@@ -63,6 +67,9 @@ final class AppSession: ObservableObject {
         account = nil
         items = []
         selectedID = nil
+        snapshot = nil
+        sessionSweptCount = 0
+        sessionSweptBytes = 0
         settings = settingsWithEmail(settings, email: nil)
         try? saveSettings(settings, to: settingsURL)
         statusText = "Disconnected."
@@ -94,6 +101,7 @@ final class AppSession: ObservableObject {
             self.items = outcome.items
             self.selectedID = self.visibleItems.first?.id
             self.statusText = scanStatusText(outcome)
+            await self.refreshMailboxSnapshot()
         }
     }
 
@@ -102,9 +110,11 @@ final class AppSession: ObservableObject {
             let plan = sweepPlan(from: self.items)
             let client = try await self.gmailClient()
             let result = await trashSelected(client: client, ids: plan.ids)
+            self.recordSweep(items: self.items, result: result)
             self.items = removeTrashed(self.items, trashedIds: result.trashedIds)
             self.statusText = sweepSummary(plan, result: result)
             self.confirmSweep = false
+            await self.refreshMailboxSnapshot()
         }
     }
 
@@ -143,6 +153,37 @@ final class AppSession: ObservableObject {
         settings = settingsWithEmail(settings, email: email)
         try saveSettings(settings, to: settingsURL)
         statusText = "Connected \(email)."
+        await refreshMailboxSnapshot()
+    }
+
+    func recordSweep(items: [ReviewItem], result: SweepResult) {
+        let bytes = bytesForIds(items, ids: result.trashedIds)
+        sessionSweptCount += result.trashedIds.count
+        sessionSweptBytes += bytes
+        settings = settingsByAddingSweep(settings, count: result.trashedIds.count, bytes: bytes)
+        try? saveSettings(settings, to: settingsURL)
+    }
+
+    func refreshMailboxSnapshot() async {
+        do {
+            snapshot = try await loadMailboxSnapshot()
+        } catch {
+            return
+        }
+    }
+
+    func loadMailboxSnapshot() async throws -> MailboxSnapshot {
+        let client = try await gmailClient()
+        let profile = try await client.mailboxProfile()
+        let quota = try? await client.storageQuota()
+        return MailboxSnapshot(
+            messagesTotal: profile.messagesTotal,
+            quota: quota,
+            sessionSweptCount: sessionSweptCount,
+            sessionSweptBytes: sessionSweptBytes,
+            lifetimeSweptCount: settings.sweptCount,
+            lifetimeSweptBytes: settings.sweptBytes
+        )
     }
 
     func gmailClient() async throws -> GmailClient {

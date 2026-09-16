@@ -36,6 +36,7 @@ struct GmailListItemJSON: Decodable {
 
 struct GmailProfileJSON: Decodable {
     let emailAddress: String
+    let messagesTotal: Int?
 }
 
 func headerValue(_ headers: [GmailHeaderJSON]?, name: String) -> String? {
@@ -119,11 +120,15 @@ public func parseGmailMessageList(data: Data) throws -> (ids: [String], nextPage
     return (ids, json.nextPageToken)
 }
 
-public func parseGmailProfileEmail(data: Data) throws -> String {
+public func parseGmailProfile(data: Data) throws -> GmailProfile {
     guard let json = try? JSONDecoder().decode(GmailProfileJSON.self, from: data) else {
         throw MarkSweepError.decode
     }
-    return json.emailAddress
+    return GmailProfile(email: json.emailAddress, messagesTotal: json.messagesTotal ?? 0)
+}
+
+public func parseGmailProfileEmail(data: Data) throws -> String {
+    try parseGmailProfile(data: data).email
 }
 
 public func gmailTrashBody(ids: [String]) throws -> Data {

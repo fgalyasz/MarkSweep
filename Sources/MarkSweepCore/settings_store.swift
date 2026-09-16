@@ -1,23 +1,73 @@
 import Foundation
 
+enum SettingsKey: String, CodingKey {
+    case lastEmail
+    case largeBytesThreshold
+    case perQueryCap
+    case sweptCount
+    case sweptBytes
+}
+
 public let markSweepVersion = "0.1.0"
 
-public struct MarkSweepSettings: Equatable, Codable {
+public struct MarkSweepSettings: Equatable {
     public var lastEmail: String?
     public var largeBytesThreshold: Int
     public var perQueryCap: Int
+    public var sweptCount: Int
+    public var sweptBytes: Int
 
     public static let `default` = MarkSweepSettings(
         lastEmail: nil,
         largeBytesThreshold: 5_000_000,
-        perQueryCap: 40
+        perQueryCap: 40,
+        sweptCount: 0,
+        sweptBytes: 0
     )
 
-    public init(lastEmail: String?, largeBytesThreshold: Int, perQueryCap: Int) {
+    public init(
+        lastEmail: String?,
+        largeBytesThreshold: Int,
+        perQueryCap: Int,
+        sweptCount: Int = 0,
+        sweptBytes: Int = 0
+    ) {
         self.lastEmail = lastEmail
         self.largeBytesThreshold = largeBytesThreshold
         self.perQueryCap = perQueryCap
+        self.sweptCount = sweptCount
+        self.sweptBytes = sweptBytes
     }
+}
+
+extension MarkSweepSettings: Codable {
+    public init(from decoder: Decoder) throws {
+        self = try decodeSettings(decoder)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        try encodeSettings(self, encoder: encoder)
+    }
+}
+
+func decodeSettings(_ decoder: Decoder) throws -> MarkSweepSettings {
+    let c = try decoder.container(keyedBy: SettingsKey.self)
+    return MarkSweepSettings(
+        lastEmail: try c.decodeIfPresent(String.self, forKey: .lastEmail),
+        largeBytesThreshold: try c.decodeIfPresent(Int.self, forKey: .largeBytesThreshold) ?? 5_000_000,
+        perQueryCap: try c.decodeIfPresent(Int.self, forKey: .perQueryCap) ?? 40,
+        sweptCount: try c.decodeIfPresent(Int.self, forKey: .sweptCount) ?? 0,
+        sweptBytes: try c.decodeIfPresent(Int.self, forKey: .sweptBytes) ?? 0
+    )
+}
+
+func encodeSettings(_ settings: MarkSweepSettings, encoder: Encoder) throws {
+    var c = encoder.container(keyedBy: SettingsKey.self)
+    try c.encodeIfPresent(settings.lastEmail, forKey: .lastEmail)
+    try c.encode(settings.largeBytesThreshold, forKey: .largeBytesThreshold)
+    try c.encode(settings.perQueryCap, forKey: .perQueryCap)
+    try c.encode(settings.sweptCount, forKey: .sweptCount)
+    try c.encode(settings.sweptBytes, forKey: .sweptBytes)
 }
 
 public func defaultSettingsURL() -> URL {
@@ -38,7 +88,9 @@ public func migrateSettings(_ settings: MarkSweepSettings) -> MarkSweepSettings 
     return MarkSweepSettings(
         lastEmail: settings.lastEmail,
         largeBytesThreshold: settings.largeBytesThreshold,
-        perQueryCap: MarkSweepSettings.default.perQueryCap
+        perQueryCap: MarkSweepSettings.default.perQueryCap,
+        sweptCount: settings.sweptCount,
+        sweptBytes: settings.sweptBytes
     )
 }
 
@@ -55,6 +107,18 @@ public func settingsWithEmail(_ settings: MarkSweepSettings, email: String?) -> 
     MarkSweepSettings(
         lastEmail: email,
         largeBytesThreshold: settings.largeBytesThreshold,
-        perQueryCap: settings.perQueryCap
+        perQueryCap: settings.perQueryCap,
+        sweptCount: settings.sweptCount,
+        sweptBytes: settings.sweptBytes
+    )
+}
+
+public func settingsByAddingSweep(_ settings: MarkSweepSettings, count: Int, bytes: Int) -> MarkSweepSettings {
+    MarkSweepSettings(
+        lastEmail: settings.lastEmail,
+        largeBytesThreshold: settings.largeBytesThreshold,
+        perQueryCap: settings.perQueryCap,
+        sweptCount: settings.sweptCount + count,
+        sweptBytes: settings.sweptBytes + bytes
     )
 }

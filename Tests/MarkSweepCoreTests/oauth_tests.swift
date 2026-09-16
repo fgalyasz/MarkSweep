@@ -30,6 +30,7 @@ final class OAuthTests: XCTestCase {
         XCTAssertTrue(url.absoluteString.contains("code_challenge=ch"))
         XCTAssertTrue(url.absoluteString.contains("state=st"))
         XCTAssertTrue(url.absoluteString.contains("gmail.modify"))
+        XCTAssertTrue(url.absoluteString.contains("drive.metadata.readonly"))
     }
 
     func testCallbackCode() throws {

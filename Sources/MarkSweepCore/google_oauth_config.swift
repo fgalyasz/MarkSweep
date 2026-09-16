@@ -12,7 +12,8 @@ public struct GoogleOAuthConfig: Equatable {
 
 public let gmailOAuthScopes = [
     "https://www.googleapis.com/auth/gmail.readonly",
-    "https://www.googleapis.com/auth/gmail.modify"
+    "https://www.googleapis.com/auth/gmail.modify",
+    "https://www.googleapis.com/auth/drive.metadata.readonly"
 ]
 
 public func googleOAuthConfig(clientID: String?, clientSecret: String?) throws -> GoogleOAuthConfig {

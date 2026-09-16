@@ -30,7 +30,20 @@ struct ReviewView: View {
                 Text(session.account?.email ?? "")
                 Button("Disconnect", action: session.disconnect)
             }
+            if let snapshot = session.snapshot {
+                Section("Mailbox") {
+                    Text(mailboxCountLine(snapshot))
+                    Text(mailboxQuotaLine(snapshot))
+                    Text(mailboxQuotaNote())
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(mailboxCleanedSessionLine(snapshot))
+                    Text(mailboxCleanedLifetimeLine(snapshot))
+                }
+            }
             Section("Filter") {
+                Text(showingCountLine(visible: session.visibleItems.count, total: session.items.count))
+                    .foregroundStyle(.secondary)
                 ForEach(ReviewFilter.allCases) { filter in
                     Button(reviewFilterTitle(filter)) { session.filter = filter }
                         .foregroundStyle(session.filter == filter ? Color.accentColor : Color.primary)

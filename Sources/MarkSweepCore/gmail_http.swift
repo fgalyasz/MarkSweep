@@ -52,18 +52,29 @@ public func googleErrorMessage(_ object: [String: Any]) -> String {
 }
 
 public func httpStatusText(_ status: Int, detail: String) -> String {
-    if status == 403, detail.lowercased().contains("has not been used") {
-        return "Enable the Gmail API in Google Cloud Console, then Connect again."
-    }
     if quotaStatus(status), isQuotaDetail(detail) {
         return "Gmail rate limit hit. Wait a minute, then Scan again."
+    }
+    if status == 403, detail.lowercased().contains("has not been used") {
+        return unusedAPIText(detail)
     }
     if detail.isEmpty { return "Gmail HTTP \(status)." }
     return "Gmail HTTP \(status): \(detail)"
 }
 
+public func unusedAPIText(_ detail: String) -> String {
+    if detail.lowercased().contains("drive") {
+        return "Enable the Google Drive API in Google Cloud Console, then Disconnect and Connect."
+    }
+    return "Enable the Gmail API in Google Cloud Console, then Connect again."
+}
+
 public func quotaStatus(_ status: Int) -> Bool {
     status == 403 || status == 429
+}
+
+public func driveAboutURL() -> URL {
+    URL(string: "https://www.googleapis.com/drive/v3/about?fields=storageQuota")!
 }
 
 public enum GmailFormat: String {

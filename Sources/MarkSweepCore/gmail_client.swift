@@ -21,8 +21,16 @@ public struct GmailClient {
         return try requireHTTPData(try await transport.data(for: request))
     }
 
+    public func mailboxProfile() async throws -> GmailProfile {
+        try parseGmailProfile(data: try await get(url: gmailProfileURL()))
+    }
+
     public func profileEmail() async throws -> String {
-        try parseGmailProfileEmail(data: try await get(url: gmailProfileURL()))
+        try await mailboxProfile().email
+    }
+
+    public func storageQuota() async throws -> StorageQuota {
+        try parseDriveQuota(data: try await get(url: driveAboutURL()))
     }
 
     public func message(id: String, format: GmailFormat) async throws -> MessageFeatures {
